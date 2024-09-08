@@ -1,0 +1,6 @@
+@SimpleOnlineStore_Dotnet_HostAddress = http://localhost:5029
+
+GET {{SimpleOnlineStore_Dotnet_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
