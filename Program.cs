@@ -1,4 +1,11 @@
+using Microsoft.EntityFrameworkCore;
+using SimpleOnlineStore_Dotnet.Data;
+
 var builder = WebApplication.CreateBuilder(args);
+
+var Configuration = builder.Configuration;
+builder.Services.AddDbContext<SOSContext>(options =>
+    options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
