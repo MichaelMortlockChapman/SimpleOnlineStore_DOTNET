@@ -24,9 +24,11 @@ namespace SimpleOnlineStore_Dotnet.Controllers
         }
 
         [HttpPost("[action]")]
-        public ActionResult<string> Add(Product product)
+        public async Task<ActionResult<string>> Add(ProductDetails productDetails)
         {
-            _sosContext.Products.Add(product);
+            Product product = new(productDetails.Name, productDetails.Description, productDetails.Price, productDetails.Stock);
+            await _sosContext.Products.AddAsync(product);
+            await _sosContext.SaveChangesAsync();
             return Ok(product.Id);
         }
     }
