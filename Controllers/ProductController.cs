@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace SimpleOnlineStore_Dotnet.Controllers
 {
-    [Route("API/[controller]")]
+    [Route("/v1/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
     {
