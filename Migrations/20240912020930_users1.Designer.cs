@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SimpleOnlineStore_Dotnet.Data;
@@ -11,9 +12,11 @@ using SimpleOnlineStore_Dotnet.Data;
 namespace SimpleOnlineStore_Dotnet.Migrations
 {
     [DbContext(typeof(SOSContext))]
-    partial class SOSContextModelSnapshot : ModelSnapshot
+    [Migration("20240912020930_users1")]
+    partial class users1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

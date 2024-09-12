@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SimpleOnlineStore_Dotnet.Data;
@@ -11,13 +12,14 @@ using SimpleOnlineStore_Dotnet.Data;
 namespace SimpleOnlineStore_Dotnet.Migrations
 {
     [DbContext(typeof(SOSContext))]
-    partial class SOSContextModelSnapshot : ModelSnapshot
+    [Migration("20240912004913_usersAndOrders1")]
+    partial class usersAndOrders1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("identity")
                 .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -46,7 +48,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                         .IsUnique()
                         .HasDatabaseName("RoleNameIndex");
 
-                    b.ToTable("AspNetRoles", "identity");
+                    b.ToTable("AspNetRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -71,7 +73,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", "identity");
+                    b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -96,7 +98,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", "identity");
+                    b.ToTable("AspNetUserClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -118,7 +120,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", "identity");
+                    b.ToTable("AspNetUserLogins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -133,7 +135,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", "identity");
+                    b.ToTable("AspNetUserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -152,7 +154,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", "identity");
+                    b.ToTable("AspNetUserTokens", (string)null);
                 });
 
             modelBuilder.Entity("SimpleOnlineStore_Dotnet.Models.Admin", b =>
@@ -171,7 +173,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
                     b.HasIndex("creatorId");
 
-                    b.ToTable("Admins", "identity");
+                    b.ToTable("Admins");
                 });
 
             modelBuilder.Entity("SimpleOnlineStore_Dotnet.Models.Customer", b =>
@@ -201,7 +203,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
                     b.HasKey("id");
 
-                    b.ToTable("Customers", "identity");
+                    b.ToTable("Customers");
                 });
 
             modelBuilder.Entity("SimpleOnlineStore_Dotnet.Models.Order", b =>
@@ -239,7 +241,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
                     b.HasIndex("customerid");
 
-                    b.ToTable("Orders", "identity");
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("SimpleOnlineStore_Dotnet.Models.Product", b =>
@@ -271,7 +273,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("Products", "identity");
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("SimpleOnlineStore_Dotnet.Models.User", b =>
@@ -342,7 +344,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex");
 
-                    b.ToTable("AspNetUsers", "identity");
+                    b.ToTable("AspNetUsers", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
