@@ -1,8 +1,15 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SimpleOnlineStore_Dotnet.Data;
 using SimpleOnlineStore_Dotnet.Models;
+using System.Net;
+
+static Task UnauthorizedResponse(RedirectContext<CookieAuthenticationOptions> context) {
+    context.Response.StatusCode = (int) HttpStatusCode.Unauthorized;
+    return Task.CompletedTask;
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,8 +23,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddAuthorization();
-builder.Services.AddAuthentication().AddCookie(IdentityConstants.ApplicationScheme);
+builder.Services.AddAuthentication().AddCookie(options => {
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.Name = "AuthCookie";
+    options.Events.OnRedirectToAccessDenied = UnauthorizedResponse;
+    options.Events.OnRedirectToLogin = UnauthorizedResponse;
+});
 builder.Services.AddIdentityCore<User>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<SOSContext>()
@@ -66,7 +77,7 @@ using (var scope = app.Services.CreateScope())
 //    }
 //}
 
-app.MapIdentityApi<User>();
+//app.MapIdentityApi<User>();
 app.UseAuthorization();
 app.UseAuthentication();
 app.Run();

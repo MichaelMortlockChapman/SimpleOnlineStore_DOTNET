@@ -7,19 +7,17 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SimpleOnlineStore_Dotnet.Migrations
 {
     /// <inheritdoc />
-    public partial class usersAndOrders1 : Migration
+    public partial class pcInit : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<Guid>(
-                name: "OrderId",
-                table: "Products",
-                type: "uuid",
-                nullable: true);
+            migrationBuilder.EnsureSchema(
+                name: "identity");
 
             migrationBuilder.CreateTable(
                 name: "Admins",
+                schema: "identity",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -32,6 +30,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                     table.ForeignKey(
                         name: "FK_Admins_Admins_creatorId",
                         column: x => x.creatorId,
+                        principalSchema: "identity",
                         principalTable: "Admins",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -39,6 +38,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
+                schema: "identity",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
@@ -53,11 +53,10 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetUsers",
+                schema: "identity",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "text", nullable: false),
-                    role = table.Column<string>(type: "text", nullable: false),
-                    roleId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
@@ -80,6 +79,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Customers",
+                schema: "identity",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -96,6 +96,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
+                schema: "identity",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -110,6 +111,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                     table.ForeignKey(
                         name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
                         column: x => x.RoleId,
+                        principalSchema: "identity",
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -117,6 +119,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserClaims",
+                schema: "identity",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -131,6 +134,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                     table.ForeignKey(
                         name: "FK_AspNetUserClaims_AspNetUsers_UserId",
                         column: x => x.UserId,
+                        principalSchema: "identity",
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -138,6 +142,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserLogins",
+                schema: "identity",
                 columns: table => new
                 {
                     LoginProvider = table.Column<string>(type: "text", nullable: false),
@@ -151,6 +156,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                     table.ForeignKey(
                         name: "FK_AspNetUserLogins_AspNetUsers_UserId",
                         column: x => x.UserId,
+                        principalSchema: "identity",
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -158,6 +164,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserRoles",
+                schema: "identity",
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "text", nullable: false),
@@ -169,12 +176,14 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                     table.ForeignKey(
                         name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
                         column: x => x.RoleId,
+                        principalSchema: "identity",
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_AspNetUserRoles_AspNetUsers_UserId",
                         column: x => x.UserId,
+                        principalSchema: "identity",
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -182,6 +191,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
             migrationBuilder.CreateTable(
                 name: "AspNetUserTokens",
+                schema: "identity",
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "text", nullable: false),
@@ -195,6 +205,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                     table.ForeignKey(
                         name: "FK_AspNetUserTokens_AspNetUsers_UserId",
                         column: x => x.UserId,
+                        principalSchema: "identity",
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -202,6 +213,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Orders",
+                schema: "identity",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -219,115 +231,144 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                     table.ForeignKey(
                         name: "FK_Orders_Customers_customerid",
                         column: x => x.customerid,
+                        principalSchema: "identity",
                         principalTable: "Customers",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Products_OrderId",
-                table: "Products",
-                column: "OrderId");
+            migrationBuilder.CreateTable(
+                name: "Products",
+                schema: "identity",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    Description = table.Column<string>(type: "character varying(400)", maxLength: 400, nullable: false),
+                    Price = table.Column<double>(type: "double precision", nullable: false),
+                    Stock = table.Column<int>(type: "integer", nullable: false),
+                    OrderId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Products_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalSchema: "identity",
+                        principalTable: "Orders",
+                        principalColumn: "Id");
+                });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Admins_creatorId",
+                schema: "identity",
                 table: "Admins",
                 column: "creatorId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
+                schema: "identity",
                 table: "AspNetRoleClaims",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
+                schema: "identity",
                 table: "AspNetRoles",
                 column: "NormalizedName",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserClaims_UserId",
+                schema: "identity",
                 table: "AspNetUserClaims",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserLogins_UserId",
+                schema: "identity",
                 table: "AspNetUserLogins",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserRoles_RoleId",
+                schema: "identity",
                 table: "AspNetUserRoles",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
+                schema: "identity",
                 table: "AspNetUsers",
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
+                schema: "identity",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Orders_customerid",
+                schema: "identity",
                 table: "Orders",
                 column: "customerid");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Products_Orders_OrderId",
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_OrderId",
+                schema: "identity",
                 table: "Products",
-                column: "OrderId",
-                principalTable: "Orders",
-                principalColumn: "Id");
+                column: "OrderId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Products_Orders_OrderId",
-                table: "Products");
+            migrationBuilder.DropTable(
+                name: "Admins",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "Admins");
+                name: "AspNetRoleClaims",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoleClaims");
+                name: "AspNetUserClaims",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserClaims");
+                name: "AspNetUserLogins",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserLogins");
+                name: "AspNetUserRoles",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserRoles");
+                name: "AspNetUserTokens",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUserTokens");
+                name: "Products",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "Orders");
+                name: "AspNetRoles",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoles");
+                name: "AspNetUsers",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
+                name: "Orders",
+                schema: "identity");
 
             migrationBuilder.DropTable(
-                name: "Customers");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Products_OrderId",
-                table: "Products");
-
-            migrationBuilder.DropColumn(
-                name: "OrderId",
-                table: "Products");
+                name: "Customers",
+                schema: "identity");
         }
     }
 }

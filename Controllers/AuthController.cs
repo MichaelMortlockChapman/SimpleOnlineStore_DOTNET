@@ -15,21 +15,6 @@ namespace SimpleOnlineStore_Dotnet.Controllers
     {
         private static readonly EmailAddressAttribute _emailAddressAttribute = new();
 
-        public AuthController(IEndpointRouteBuilder endpoints)
-        {
-            ArgumentNullException.ThrowIfNull(endpoints);
-            
-            var timeProvider = endpoints.ServiceProvider.GetRequiredService<TimeProvider>();
-            var bearerTokenOptions = endpoints.ServiceProvider.GetRequiredService<IOptionsMonitor<BearerTokenOptions>>();
-            var emailSender = endpoints.ServiceProvider.GetRequiredService<IEmailSender<User>>();
-            var linkGenerator = endpoints.ServiceProvider.GetRequiredService<LinkGenerator>();
-        }
-
-        private static ValidationProblem CreateValidationProblem(string errorCode, string errorDescription) =>
-               TypedResults.ValidationProblem(new Dictionary<string, string[]> {
-                   { errorCode, new[] {errorDescription} }
-               });
-
         private static ValidationProblem CreateValidationProblem(IdentityResult result)
         {
             // We expect a single error code and description in the normal case.
@@ -57,42 +42,8 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             return TypedResults.ValidationProblem(errorDictionary);
         }
 
-        //async Task SendConfirmationEmailAsync(User user, UserManager<User> userManager, HttpContext context, string email, bool isChange = false)
-        //{
-        //    if (confirmEmailEndpointName is null)
-        //    {
-        //        throw new NotSupportedException("No email confirmation endpoint was registered!");
-        //    }
-
-        //    var code = isChange
-        //        ? await userManager.GenerateChangeEmailTokenAsync(user, email)
-        //        : await userManager.GenerateEmailConfirmationTokenAsync(user);
-        //    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-
-        //    var userId = await userManager.GetUserIdAsync(user);
-        //    var routeValues = new RouteValueDictionary()
-        //    {
-        //        ["userId"] = userId,
-        //        ["code"] = code,
-        //    };
-
-        //    if (isChange)
-        //    {
-        //        // This is validated by the /confirmEmail endpoint on change.
-        //        routeValues.Add("changedEmail", email);
-        //    }
-
-        //    var confirmEmailUrl = linkGenerator.GetUriByName(context, confirmEmailEndpointName, routeValues)
-        //        ?? throw new NotSupportedException($"Could not find endpoint named '{confirmEmailEndpointName}'.");
-
-        //    await emailSender.SendConfirmationLinkAsync(user, email, HtmlEncoder.Default.Encode(confirmEmailUrl));
-        //}
-
-        //        return new IdentityEndpointsConventionBuilder(routeGroup);
-        //}
-
         [HttpPost("[action]")]
-        public async Task<Results<Ok, ValidationProblem>> Registration([FromBody] RegisterRequest registration, HttpContext context, [FromServices] IServiceProvider sp)
+        public async Task<Results<Ok, ValidationProblem>> Registration([FromBody] RegisterRequest registration, [FromServices] IServiceProvider sp) // HttpContext context
         {
             var userManager = sp.GetRequiredService<UserManager<User>>();
 
@@ -106,6 +57,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             }
 
             var user = new User();
+            user.EmailConfirmed = true; // ignoring email confirmation for this project
             await userStore.SetUserNameAsync(user, email, CancellationToken.None);
             await emailStore.SetEmailAsync(user, email, CancellationToken.None);
             var result = await userManager.CreateAsync(user, registration.Password);
@@ -115,33 +67,23 @@ namespace SimpleOnlineStore_Dotnet.Controllers
                 return CreateValidationProblem(result);
             }
 
-            //await SendConfirmationEmailAsync(user, userManager, context, email);
             return TypedResults.Ok();
         }
 
         [HttpPost("[action]")]
         public async Task<Results<Ok<AccessTokenResponse>, EmptyHttpResult, ProblemHttpResult>> 
-            Login([FromBody] LoginRequest login, [FromQuery] bool? useCookies, [FromQuery] bool? useSessionCookies, [FromServices] IServiceProvider sp)
+            Login([FromBody] RegisterRequest login, [FromServices] IServiceProvider sp)
         {
             var signInManager = sp.GetRequiredService<SignInManager<User>>();
+            var userManager = sp.GetRequiredService<UserManager<User>>();
+            signInManager.AuthenticationScheme = IdentityConstants.ApplicationScheme;
 
-            var useCookieScheme = (useCookies == true) || (useSessionCookies == true);
-            var isPersistent = (useCookies == true) && (useSessionCookies != true);
-            signInManager.AuthenticationScheme = useCookieScheme ? IdentityConstants.ApplicationScheme : IdentityConstants.BearerScheme;
-
-            var result = await signInManager.PasswordSignInAsync(login.Email, login.Password, isPersistent, lockoutOnFailure: true);
-
-            if (result.RequiresTwoFactor)
-            {
-                if (!string.IsNullOrEmpty(login.TwoFactorCode))
-                {
-                    result = await signInManager.TwoFactorAuthenticatorSignInAsync(login.TwoFactorCode, isPersistent, rememberClient: isPersistent);
-                }
-                else if (!string.IsNullOrEmpty(login.TwoFactorRecoveryCode))
-                {
-                    result = await signInManager.TwoFactorRecoveryCodeSignInAsync(login.TwoFactorRecoveryCode);
-                }
+            User? user = await userManager.FindByEmailAsync(login.Email);
+            if (user == null) {
+                return TypedResults.Problem("Failed", statusCode: StatusCodes.Status401Unauthorized);
             }
+
+            var result = await signInManager.CheckPasswordSignInAsync(user, login.Password, lockoutOnFailure: true);
 
             if (!result.Succeeded)
             {

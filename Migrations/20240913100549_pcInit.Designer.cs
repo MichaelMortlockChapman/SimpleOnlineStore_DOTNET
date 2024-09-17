@@ -12,8 +12,8 @@ using SimpleOnlineStore_Dotnet.Data;
 namespace SimpleOnlineStore_Dotnet.Migrations
 {
     [DbContext(typeof(SOSContext))]
-    [Migration("20240912020930_users1")]
-    partial class users1
+    [Migration("20240913100549_pcInit")]
+    partial class pcInit
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -328,13 +328,6 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
-
-                    b.Property<string>("role")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("roleId")
-                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
