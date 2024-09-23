@@ -15,7 +15,7 @@ public class HelloController : ControllerBase
         return Ok("hello world!");
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     [HttpGet("[action]")]
     public ActionResult<string> HelloWorldAuth()
     {

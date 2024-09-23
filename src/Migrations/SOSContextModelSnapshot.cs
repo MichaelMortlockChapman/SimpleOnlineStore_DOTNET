@@ -326,13 +326,6 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("role")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("roleId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedEmail")
