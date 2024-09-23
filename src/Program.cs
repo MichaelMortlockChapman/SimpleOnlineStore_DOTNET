@@ -70,3 +70,5 @@ app.MapIdentityApi<User>();
 app.UseAuthorization();
 app.UseAuthentication();
 app.Run();
+
+public partial class Program { }
