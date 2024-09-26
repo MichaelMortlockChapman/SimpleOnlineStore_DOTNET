@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc.Testing;
+using System.Net;
 using Xunit;
 
 namespace SimpleOnlineStore_Dotnet.SimpleOnloneStore_Dotnet.Api.Tests
 {
     public class HelloControllerTests
-    : IClassFixture<WebApplicationFactory<Program>>
+    : IClassFixture<WebApplicationFactory<Program>> 
     {
         private readonly WebApplicationFactory<Program> _factory;
 
@@ -14,24 +15,35 @@ namespace SimpleOnlineStore_Dotnet.SimpleOnloneStore_Dotnet.Api.Tests
         }
 
         [Fact]
-        public void Add1plus1()
-        {
-            Assert.Equal(1 + 1, 2);
-        }
-
-        [Fact]
         public async Task Get_HelloWorld()
         {
-            // Arrange
             var client = _factory.CreateClient();
-
-            // Act
             var response = await client.GetAsync("/v1/Hello/HelloWorld");
 
-            // Assert
             response.EnsureSuccessStatusCode(); // Status Code 200-299
             string content = await response.Content.ReadAsStringAsync();
             Assert.Equal("hello world!", content);
+        }
+
+        [Fact]
+        public async Task Get_HelloWorldAuth_UnAuth() {
+            var client = _factory.CreateClient();
+            var response = await client.GetAsync("/v1/Hello/HelloWorldAuth");
+            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode) ;
+        }
+
+        //[Fact]
+        //public async Task Get_HelloWorldAuth_Forbidden() {
+        //    var client = _factory.CreateClient();
+        //    var response = await client.GetAsync("/v1/Hello/HelloWorldAuth");
+        //    Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        //}
+
+        [Fact]
+        public async Task Get_BadRoute404() {
+            var client = _factory.CreateClient();
+            var response = await client.GetAsync("/v1/HelloImABadRoute/HelloWorld");
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
 }
