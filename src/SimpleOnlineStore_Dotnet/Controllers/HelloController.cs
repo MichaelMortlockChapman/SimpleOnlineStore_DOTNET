@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SimpleOnlineStore_Dotnet.Controllers {
     [ApiController]
-    [Route("[controller]")]
+    [Route("/v1/[controller]")]
     public class HelloController : ControllerBase {
         public HelloController() { }
 

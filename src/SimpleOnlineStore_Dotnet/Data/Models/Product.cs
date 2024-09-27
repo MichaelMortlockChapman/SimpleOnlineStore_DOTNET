@@ -1,11 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SimpleOnlineStore_Dotnet.Models
 {
     public class Product
     {
         [Key]
-        public Guid Id { get; private set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; private set; }
         [MaxLength(50)]
         public string Name { get; set; }
         [MaxLength(400)]
@@ -20,7 +22,6 @@ namespace SimpleOnlineStore_Dotnet.Models
 
         public Product(string name, string decription, double price, int stock)
         {
-            this.Id = Guid.NewGuid();
             this.Name = name;
             this.Description = decription;
             this.Price = price;
