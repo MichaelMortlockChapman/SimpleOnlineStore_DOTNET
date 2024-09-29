@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SimpleOnlineStore_Dotnet.Models;
 
 namespace SimpleOnlineStore_Dotnet.Data {
-    public class DataContext : IdentityDbContext<IdentityUser> {
+    public class DataContext : IdentityDbContext<User> {
 
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
