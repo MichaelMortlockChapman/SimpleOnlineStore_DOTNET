@@ -5,7 +5,7 @@ using SimpleOnlineStore_Dotnet.Data;
 
 namespace SimpleOnlineStore_Dotnet.Controllers {
     [ApiController]
-    [Route("/v1/[controller]")]
+    [Route("[controller]")]
     public class HelloController : ControllerBase {
         public HelloController() { }
 
@@ -20,13 +20,13 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
             return Ok("Hello authenticated user!");
         }
 
-        [Authorize(Roles = "CUSTOMER")]
+        [Authorize(Policy = "RequireCustomerRole")]
         [HttpGet("[action]")]
         public ActionResult<string> HelloCustomer() {
             return Ok("Hello customer!");
         }
 
-        [Authorize(Roles = "ADMIN")]
+        [Authorize(Policy = "RequireAdminRole")]
         [HttpGet("[action]")]
         public ActionResult<string> HelloAdmin() {
             return Ok("Hello admin!");

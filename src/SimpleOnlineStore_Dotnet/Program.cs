@@ -29,16 +29,6 @@ builder.Services.AddSwaggerGen(options => {
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddAuthorization();
-builder.Services
-    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options => {
-        //options.Events.OnRedirectToAccessDenied = context => {
-        //    context.Response.StatusCode = 403;
-        //    return Task.CompletedTask;
-        //};
-    });
-
 builder.Services.
     AddLogging(config => {
         config.AddConsole();
@@ -50,7 +40,28 @@ builder.Services.
     //.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<DataContext>();
 
+builder.Services.AddAuthorization(options => {
+    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole(Roles.ADMIN_ROLE));
+    options.AddPolicy("RequireCustomerRole", policy => policy.RequireRole(Roles.CUSTOMER_ROLE));
+});
+builder.Services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie();
+
+builder.Services.ConfigureApplicationCookie(options => {
+    options.Events.OnRedirectToAccessDenied = context => {
+        context.Response.StatusCode = 403;
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToLogin = context => {
+        context.Response.StatusCode = 401;
+        return Task.CompletedTask;
+    };
+});
+
 var app = builder.Build();
+
+app.UseMiddleware<GlobalRoutePrefixMiddleware>("/api/v1");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) {
@@ -59,6 +70,8 @@ if (app.Environment.IsDevelopment()) {
 }
 
 app.UseHttpsRedirection();
+
+app.UsePathBase(new PathString("/api/v1"));
 
 app.UseCookiePolicy();
 app.UseAuthorization();
@@ -76,3 +89,18 @@ using (var scope = app.Services.CreateScope()) {
 }
 
 app.Run();
+
+class GlobalRoutePrefixMiddleware {
+    private readonly RequestDelegate _next;
+    private readonly string _routePrefix;
+
+    public GlobalRoutePrefixMiddleware(RequestDelegate next, string routePrefix) {
+        _next = next;
+        _routePrefix = routePrefix;
+    }
+
+    public async Task InvokeAsync(HttpContext context) {
+        context.Request.PathBase = new PathString(_routePrefix);
+        await _next(context);
+    }
+}

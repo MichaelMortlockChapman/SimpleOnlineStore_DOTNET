@@ -6,7 +6,7 @@ using SimpleOnlineStore_Dotnet.Models;
 using System.Linq;
 
 namespace SimpleOnlineStore_Dotnet.Controllers {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class AuthController : ControllerBase {
         

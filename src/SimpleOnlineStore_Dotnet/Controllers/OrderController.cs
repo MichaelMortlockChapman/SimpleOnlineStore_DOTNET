@@ -7,7 +7,7 @@ using SimpleOnlineStore_Dotnet.Models;
 namespace SimpleOnlineStore_Dotnet.Controllers
 {
     //[Authorize]
-    [Route("/v1/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class OrderController : ControllerBase {
         private readonly DataContext _dataContext;

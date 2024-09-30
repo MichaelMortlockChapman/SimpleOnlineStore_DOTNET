@@ -9,7 +9,7 @@ using System.Linq;
 namespace SimpleOnlineStore_Dotnet.Controllers
 {
     [Authorize]
-    [Route("/v1/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
     {
