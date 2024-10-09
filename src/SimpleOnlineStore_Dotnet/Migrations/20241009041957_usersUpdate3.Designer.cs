@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SimpleOnlineStore_Dotnet.Data;
@@ -11,9 +12,11 @@ using SimpleOnlineStore_Dotnet.Data;
 namespace SimpleOnlineStore_Dotnet.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20241009041957_usersUpdate3")]
+    partial class usersUpdate3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -160,45 +163,45 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("Creation")
+                    b.Property<DateTime>("creation")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid>("CreatorId")
+                    b.Property<Guid>("creatorId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatorId");
+                    b.HasIndex("creatorId");
 
                     b.ToTable("Admins");
                 });
 
             modelBuilder.Entity("SimpleOnlineStore_Dotnet.Models.Customer", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Address")
+                    b.Property<string>("address")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("City")
+                    b.Property<string>("city")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Country")
+                    b.Property<string>("country")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("name")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("PostalCode")
+                    b.Property<int>("postalCode")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.HasKey("id");
 
                     b.ToTable("Customers");
                 });
@@ -221,7 +224,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("CustomerId")
+                    b.Property<Guid>("Customerid")
                         .HasColumnType("uuid");
 
                     b.Property<int>("PostalCode")
@@ -237,7 +240,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("Customerid");
 
                     b.ToTable("Orders");
                 });
@@ -328,7 +331,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<Guid>("UserRoleId")
+                    b.Property<Guid>("userRoleId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -396,20 +399,20 @@ namespace SimpleOnlineStore_Dotnet.Migrations
 
             modelBuilder.Entity("SimpleOnlineStore_Dotnet.Models.Admin", b =>
                 {
-                    b.HasOne("SimpleOnlineStore_Dotnet.Models.Admin", "Creator")
+                    b.HasOne("SimpleOnlineStore_Dotnet.Models.Admin", "creator")
                         .WithMany()
-                        .HasForeignKey("CreatorId")
+                        .HasForeignKey("creatorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Creator");
+                    b.Navigation("creator");
                 });
 
             modelBuilder.Entity("SimpleOnlineStore_Dotnet.Models.Order", b =>
                 {
                     b.HasOne("SimpleOnlineStore_Dotnet.Models.Customer", "Customer")
                         .WithMany()
-                        .HasForeignKey("CustomerId")
+                        .HasForeignKey("Customerid")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

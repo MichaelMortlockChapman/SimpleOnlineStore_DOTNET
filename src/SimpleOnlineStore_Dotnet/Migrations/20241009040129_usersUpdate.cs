@@ -7,11 +7,30 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace SimpleOnlineStore_Dotnet.Migrations
 {
     /// <inheritdoc />
-    public partial class init : Migration
+    public partial class usersUpdate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Admins",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    creation = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    creatorId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Admins", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Admins_Admins_creatorId",
+                        column: x => x.creatorId,
+                        principalTable: "Admins",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -52,7 +71,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Customer",
+                name: "Customers",
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -64,7 +83,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Customer", x => x.id);
+                    table.PrimaryKey("PK_Customers", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -190,9 +209,9 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                 {
                     table.PrimaryKey("PK_Orders", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Orders_Customer_Customerid",
+                        name: "FK_Orders_Customers_Customerid",
                         column: x => x.Customerid,
-                        principalTable: "Customer",
+                        principalTable: "Customers",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -218,6 +237,11 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                         principalTable: "Orders",
                         principalColumn: "Id");
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Admins_creatorId",
+                table: "Admins",
+                column: "creatorId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -271,6 +295,9 @@ namespace SimpleOnlineStore_Dotnet.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Admins");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
             migrationBuilder.DropTable(
@@ -298,7 +325,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                 name: "Orders");
 
             migrationBuilder.DropTable(
-                name: "Customer");
+                name: "Customers");
         }
     }
 }

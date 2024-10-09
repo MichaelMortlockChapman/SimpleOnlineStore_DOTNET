@@ -9,15 +9,15 @@ namespace SimpleOnlineStore_Dotnet.Models
         public Guid Id { get; set; }
 
         [DataType(DataType.DateTime)]
-        public DateTime creation { get; set; }
+        public DateTime Creation { get; set; }
 
-        public Admin creator { get; set; }
+        public Admin Creator { get; set; }
 
         public Admin() { }
 
         public Admin(DateTime creation, Admin creator) {
-            this.creation = DateTime.UtcNow;
-            this.creator = creator;
+            this.Creation = DateTime.UtcNow;
+            this.Creator = creator;
         }
     }
 }

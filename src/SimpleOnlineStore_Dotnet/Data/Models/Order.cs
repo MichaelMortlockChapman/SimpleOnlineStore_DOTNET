@@ -9,7 +9,7 @@ namespace SimpleOnlineStore_Dotnet.Models
     {
         public Guid Id { get; set; }
 
-        public ICollection<Product> ProductIds { get; set; }
+        public ICollection<Product> Products { get; set; }
         public ICollection<int> ProductQuantities { get; set; }
 
         public Customer Customer { get; set; }
@@ -25,14 +25,14 @@ namespace SimpleOnlineStore_Dotnet.Models
         public string Status { get; set; }
 
         public Order() {
-            ProductIds = new List<Product>();
+            Products = new List<Product>();
             ProductQuantities = new List<int>();
         }
 
-        public Order(ICollection<Product> productIds, ICollection<int> productQuantities, Customer customer, string address, string city,
+        public Order(ICollection<Product> products, ICollection<int> productQuantities, Customer customer, string address, string city,
             int postalCode, string country, string status)
         {
-            this.ProductIds = productIds;
+            this.Products = products;
             this.ProductQuantities = productQuantities;
             this.Customer = customer;
             this.Address = address;

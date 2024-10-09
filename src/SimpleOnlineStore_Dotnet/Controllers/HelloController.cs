@@ -1,13 +1,19 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SimpleOnlineStore_Dotnet.Data;
+using SimpleOnlineStore_Dotnet.Models;
 
 namespace SimpleOnlineStore_Dotnet.Controllers {
     [ApiController]
     [Route("[controller]")]
     public class HelloController : ControllerBase {
-        public HelloController() { }
+
+        SignInManager<User> signInManager;
+        public HelloController(SignInManager<User> signInManager) {
+            this.signInManager = signInManager;
+        }
 
         [HttpGet("[action]")]
         public ActionResult<string> Hello() {
@@ -16,8 +22,12 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
 
         [Authorize]
         [HttpGet("[action]")]
-        public ActionResult<string> HelloAuth() {
-            return Ok("Hello authenticated user!");
+        public async Task<ActionResult<string>> HelloAuthAsync() {
+            User? user = await signInManager.UserManager.GetUserAsync(signInManager.Context.User);
+            if (user == null) {
+                return BadRequest("Authenticated user doesn't exist");
+            }
+            return Ok($"Hello authenticated {user.UserName}!");
         }
 
         [Authorize(Policy = "RequireCustomerRole")]
