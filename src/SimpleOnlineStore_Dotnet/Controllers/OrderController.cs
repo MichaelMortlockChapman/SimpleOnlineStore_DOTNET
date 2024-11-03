@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SimpleOnlineStore_Dotnet.Data;
 using SimpleOnlineStore_Dotnet.Models;
-using static SimpleOnlineStore_Dotnet.Controllers.OrderController;
 
 namespace SimpleOnlineStore_Dotnet.Controllers
 {
@@ -109,157 +107,226 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             return CreatedAtAction("CreateSimple", "done");
         }
 
-  //      /***
-  // * creates an order for any user, only usable by admins
-  // * @param orderRequest record of order info with customer login
-  // * @return error msg or JSON obj with orderId
-  // */
-  //@PostMapping("/v1/order/admin/create")
-  //@Secured({UserRole.ROLE_ADMIN})
-  //public ResponseEntity<String> createOrderAsAdmin(@RequestBody AdminOrderRequest orderRequest) {
-  //  UUID customerId = userRepository.getRoleIdFromLogin(orderRequest.login());
-  //  Optional<ResponseEntity<String>> invalidatingReponse = checkProductExists(orderRequest.productId());
-  //  if (invalidatingReponse.isPresent()) {
-  //    return invalidatingReponse.get();
-  //  }
-  //  Order order = new Order(
-  //    productRepository.findById(orderRequest.productId()).get(), 
-  //    customerRepository.findById(customerId).get(),
-  //    orderRequest.quantity(), 
-  //    orderRequest.address(), orderRequest.city(), 
-  //    orderRequest.postalCode(), orderRequest.country(), 
-  //    OrderStatuses.ORDERED
-  //  );
-  //  orderRepository.save(order);
-  //  return new ResponseEntity<>("{\"orderId\":\"" + order.getId() + "\"}", HttpStatus.CREATED);
-  //}
+        public class AdminOrderDetails {
+            public required int[] ProductIds { get; set; }
+            public required int[] ProductQuantities { get; set; }
+            public required string Address { get; set; }
+            public required string City { get; set; }
+            public required int PostalCode { get; set; }
+            public required string Country { get; set; }
+            public required string CustomerEmail { get; set; }
+            public required OrderStatuses Status { get; set; }
+        }
 
-  ///**
-  // * updates the status of specified order
-  // * @param orderId
-  // * @param orderStatus
-  // * @return "Done" msg
-  // */
-  //@PutMapping("/v1/order/admin/update/status")
-  //@Secured({UserRole.ROLE_ADMIN})
-  //public ResponseEntity<String> updateOrderStatus(@RequestBody OrderStatusUpdateRequest statusUpdateRequest) { 
-  //  orderRepository.updateOrderStatus(statusUpdateRequest.orderId(), statusUpdateRequest.orderStatus.name());
-  //  return ResponseEntity.ok("Done");
-  //}
-  
-  //// converts order list to JSON string of JSON orders
-  //private static String toJSONList(Iterable<Order> orders) {
-  //  String ordersJSON = "[";
-  //  Iterator<Order> orderIter = orders.iterator();
-  //  while (orderIter.hasNext()) {
-  //    Order order = orderIter.next();
-  //    ordersJSON += order.toJSON();
-  //    if (orderIter.hasNext()) {
-  //      ordersJSON += ",";
-  //    }
-  //  }
-  //  ordersJSON += "]";
-  //  return ordersJSON;
-  //}
+        [HttpPost("[action]")]
+        [Authorize(Policy = "RequireAdminRole")]
+        public async Task<ActionResult<string>> AdminCreateOrder([FromBody] AdminOrderDetails adminOrderDetails) {
+            if (adminOrderDetails.ProductIds.Length != adminOrderDetails.ProductIds.Length) {
+                return BadRequest("Length of Product IDs does not match length of Product Quantities");
+            }
+            List<Product> products = new List<Product>();
+            foreach (var productEntry in adminOrderDetails.ProductIds) {
+                Product? p = await dataContext.Products.FindAsync(productEntry);
+                if (p == null) {
+                    return BadRequest("Invalid Product ID");
+                }
+                products.Add(p);
+            }
+            User? user = await userManager.FindByEmailAsync(adminOrderDetails.CustomerEmail);
+            if (user == null) {
+                return BadRequest("Invalid User");
+            }
+            Customer? customer = await dataContext.Customers.FindAsync(user.UserRoleId);
+            if (customer == null) {
+                return BadRequest("Invalid User");
+            }
+            Order order = new Order {
+                Products = products,
+                ProductQuantities = adminOrderDetails.ProductQuantities,
+                Address = adminOrderDetails.Address,
+                City = adminOrderDetails.City,
+                Country = adminOrderDetails.Country,
+                PostalCode = adminOrderDetails.PostalCode,
+                Customer = customer,
+                Status = adminOrderDetails.Status.ToString(),
+            };
+            await dataContext.Orders.AddAsync(order);
+            await dataContext.SaveChangesAsync();
+            return CreatedAtAction("CreateSimple", "done");
+        }
+        
 
-  //public record CustomerUpdateOrderRequest(
-  //  UUID orderId, Integer quantity, String address, 
-  //  String city, Integer postalCode, String country
-  //) {}
-  ///**
-  // * allows the customer to update their order's quanity or delivery info if the order is not already underway or cancelled
-  // * @param loginCookieValue user login
-  // * @param updateRequest the updated order info
-  // * @return either "Done" or error msg
-  // */
-  //@PutMapping("/v1/order/update")
-  //@Secured({UserRole.ROLE_USER})
-  //public ResponseEntity<String> updateOrderAsCustomer(
-  //  @CookieValue(CookieGenerator.COOKIE_LOGIN) String loginCookieValue,
-  //  @RequestBody CustomerUpdateOrderRequest updateRequest
-  //) {
-  //  Optional<Order> order = orderRepository.findById(updateRequest.orderId());
-  //  if (!order.isPresent()) {
-  //    return new ResponseEntity<>("Bad OrderId", HttpStatus.BAD_REQUEST);
-  //  } else if (!order.get().getStatus().equals(OrderStatuses.ORDERED)) {
-  //    return new ResponseEntity<>("Order underway or cancelled", HttpStatus.BAD_REQUEST);
-  //  }
-  //  orderRepository.updateOrder(
-  //    updateRequest.orderId(), userRepository.getRoleIdFromLogin(loginCookieValue), 
-  //    updateRequest.quantity(), updateRequest.address(), 
-  //    updateRequest.city(), updateRequest.postalCode(), updateRequest.country()
-  //  );
+        public class OrderStatusUpdate {
+            public required OrderStatuses Status { get; set; }
+            public required Guid OrderId { get; set; }
+        }
+        [HttpPut("[action]")]
+        [Authorize(Policy = "RequireAdminRole")]
+        public async Task<ActionResult<string>> UpdateOrderStatus([FromBody] OrderStatusUpdate orderStatusUpdate) {
+            Order? order = dataContext.Orders.Find(orderStatusUpdate.OrderId);
+            if (order == null) {
+                return BadRequest("Invalid Order Id");
+            }
+            order.Status = orderStatusUpdate.Status.ToString();
+            dataContext.Orders.Update(order);
+            dataContext.SaveChanges();
+            return Ok();
+        }
 
-  //  return ResponseEntity.ok("Done");
-  //}
+        public class CustomerOrderDetailsUpdate {
+            public required int[] ProductIds { get; set; }
+            public required int[] ProductQuantities { get; set; }
+            public required string Address { get; set; }
+            public required string City { get; set; }
+            public required int PostalCode { get; set; }
+            public required string Country { get; set; }
+            public required string CustomerEmail { get; set; }
+            public required Guid OrderId { get; set; }
+        }
+        [HttpPut("[action]")]
+        [Authorize(Policy = "RequireCustomerRole")]
+        public async Task<ActionResult<string>> CustomerUpdateOrder([FromBody] CustomerOrderDetailsUpdate customerOrderDetailsUpdate) {
+            if (customerOrderDetailsUpdate.ProductIds.Length != customerOrderDetailsUpdate.ProductIds.Length) {
+                return BadRequest("Length of Product IDs does not match length of Product Quantities");
+            }
+            List<Product> products = new List<Product>();
+            foreach (var productEntry in customerOrderDetailsUpdate.ProductIds) {
+                Product? p = await dataContext.Products.FindAsync(productEntry);
+                if (p == null) {
+                    return BadRequest("Invalid Product ID");
+                }
+                products.Add(p);
+            }
+            User? user = await userManager.FindByEmailAsync(customerOrderDetailsUpdate.CustomerEmail);
+            if (user == null) {
+                return BadRequest("Invalid User");
+            }
+            Customer? customer = await dataContext.Customers.FindAsync(user.UserRoleId);
+            if (customer == null) {
+                return BadRequest("Invalid User");
+            }
+            Order? order = dataContext.Orders.Find(customerOrderDetailsUpdate.OrderId);
+            if (order == null) {
+                return BadRequest("Invalid Order Id");
+            }
+            if (order.Status.Equals(OrderStatuses.ORDERED)) {
+                return BadRequest("Order underway or cancelled");
+            }
+            order.Products = products;
+            order.ProductQuantities = customerOrderDetailsUpdate.ProductQuantities;
+            order.Address = customerOrderDetailsUpdate.Address;
+            order.City = customerOrderDetailsUpdate.City;
+            order.Country = customerOrderDetailsUpdate.Country;
+            order.PostalCode = customerOrderDetailsUpdate.PostalCode;
+            order.Customer = customer;
+            dataContext.Orders.Update(order);
+            dataContext.SaveChanges();
 
-  //public record AdminOrderUpdateRequest(
-  //  UUID orderId, String customerLogin, Integer quantity, String address, 
-  //  String city, Integer postalCode, String country
-  //) {}
-  ///**
-  // * allows admins to update an orders information. Does not update status as route "/v1/order/admin/update/status" exists
-  // * @param updateRequest the updated order info
-  // * @return
-  // */
-  //@PutMapping("/v1/order/admin/update")
-  //@Secured({UserRole.ROLE_ADMIN})
-  //public ResponseEntity<String> updateOrderAsAdmin(
-  //  @RequestBody AdminOrderUpdateRequest updateRequest
-  //) {
-  //  Optional<Order> order = orderRepository.findById(updateRequest.orderId());
-  //  if (!order.isPresent()) {
-  //    return new ResponseEntity<>("Bad OrderId", HttpStatus.BAD_REQUEST);
-  //  } else if (!userRepository.existsRoleIdFromLogin(updateRequest.customerLogin())) {
-  //    return new ResponseEntity<>("Bad customer login", HttpStatus.BAD_REQUEST);
-  //  }
-  //  UUID customerId = userRepository.getRoleIdFromLogin(updateRequest.customerLogin());
-  //  orderRepository.updateOrder(
-  //    updateRequest.orderId(), customerId, 
-  //    updateRequest.quantity(), updateRequest.address(), 
-  //    updateRequest.city(), updateRequest.postalCode(), updateRequest.country()
-  //  );
+            return Ok();
+        }
 
-  //  return ResponseEntity.ok("Done");
-  //}
+        public class AdminOrderDetailsUpdate {
+            public required int[] ProductIds { get; set; }
+            public required int[] ProductQuantities { get; set; }
+            public required string Address { get; set; }
+            public required string City { get; set; }
+            public required int PostalCode { get; set; }
+            public required string Country { get; set; }
+            public required string CustomerEmail { get; set; }
+            public required Guid OrderId { get; set; }
+            public required OrderStatuses Status { get; set; }
+        }
+        [HttpPut("[action]")]
+        [Authorize(Policy = "RequireAdminRole")]
+        public async Task<ActionResult<string>> AdminUpdateOrder([FromBody] AdminOrderDetailsUpdate adminOrderDetailsUpdate) {
+            if (adminOrderDetailsUpdate.ProductIds.Length != adminOrderDetailsUpdate.ProductIds.Length) {
+                return BadRequest("Length of Product IDs does not match length of Product Quantities");
+            }
+            List<Product> products = new List<Product>();
+            foreach (var productEntry in adminOrderDetailsUpdate.ProductIds) {
+                Product? p = await dataContext.Products.FindAsync(productEntry);
+                if (p == null) {
+                    return BadRequest("Invalid Product ID");
+                }
+                products.Add(p);
+            }
+            User? user = await userManager.FindByEmailAsync(adminOrderDetailsUpdate.CustomerEmail);
+            if (user == null) {
+                return BadRequest("Invalid User");
+            }
+            Customer? customer = await dataContext.Customers.FindAsync(user.UserRoleId);
+            if (customer == null) {
+                return BadRequest("Invalid User");
+            }
+            Order? order = dataContext.Orders.Find(adminOrderDetailsUpdate.OrderId);
+            if (order == null) {
+                return BadRequest("Invalid Order Id");
+            }
+            order.Products = products;
+            order.ProductQuantities = adminOrderDetailsUpdate.ProductQuantities;
+            order.Address = adminOrderDetailsUpdate.Address;
+            order.City = adminOrderDetailsUpdate.City;
+            order.Country = adminOrderDetailsUpdate.Country;
+            order.PostalCode = adminOrderDetailsUpdate.PostalCode;
+            order.Status = adminOrderDetailsUpdate.Status.ToString();
+            order.Customer = customer;
+            dataContext.Orders.Update(order);
+            dataContext.SaveChanges();
+
+            return Ok();
+        }
+
+        //// converts order list to JSON string of JSON orders
+        //private static String toJSONList(Iterable<Order> orders) {
+        //  String ordersJSON = "[";
+        //  Iterator<Order> orderIter = orders.iterator();
+        //  while (orderIter.hasNext()) {
+        //    Order order = orderIter.next();
+        //    ordersJSON += order.toJSON();
+        //    if (orderIter.hasNext()) {
+        //      ordersJSON += ",";
+        //    }
+        //  }
+        //  ordersJSON += "]";
+        //  return ordersJSON;
+        //}
+
+        ///**
+        // * gets all active orders of customer
+        // * @param loginCookieValue user login
+        // * @return JSON String of active orders
+        // */
+        //@GetMapping("/v1/order/get/active")
+        //@Secured({UserRole.ROLE_USER})
+        //public ResponseEntity<String> getActiveOrders(@CookieValue(CookieGenerator.COOKIE_LOGIN) String loginCookieValue) {
+        //  return ResponseEntity.ok(toJSONList(orderRepository.getAllActiveOrders(userRepository.getRoleIdFromLogin(loginCookieValue))));
+        //}
 
 
-  ///**
-  // * gets all active orders of customer
-  // * @param loginCookieValue user login
-  // * @return JSON String of active orders
-  // */
-  //@GetMapping("/v1/order/get/active")
-  //@Secured({UserRole.ROLE_USER})
-  //public ResponseEntity<String> getActiveOrders(@CookieValue(CookieGenerator.COOKIE_LOGIN) String loginCookieValue) {
-  //  return ResponseEntity.ok(toJSONList(orderRepository.getAllActiveOrders(userRepository.getRoleIdFromLogin(loginCookieValue))));
-  //}
- 
+        ///**
+        // * gets all orders of customer
+        // * @param loginCookieValue user login
+        // * @return JSON String of all orders done by customer
+        // */
+        //@GetMapping("/v1/order/get/all")
+        //@Secured({UserRole.ROLE_USER})
+        //public ResponseEntity<String> getAllOrders(@CookieValue(CookieGenerator.COOKIE_LOGIN) String loginCookieValue) {
+        //  return ResponseEntity.ok(toJSONList(orderRepository.getAllOrders(userRepository.getRoleIdFromLogin(loginCookieValue))));
+        //}
 
-  ///**
-  // * gets all orders of customer
-  // * @param loginCookieValue user login
-  // * @return JSON String of all orders done by customer
-  // */
-  //@GetMapping("/v1/order/get/all")
-  //@Secured({UserRole.ROLE_USER})
-  //public ResponseEntity<String> getAllOrders(@CookieValue(CookieGenerator.COOKIE_LOGIN) String loginCookieValue) {
-  //  return ResponseEntity.ok(toJSONList(orderRepository.getAllOrders(userRepository.getRoleIdFromLogin(loginCookieValue))));
-  //}
-
-  ///**
-  // * gets specified customer order
-  // * @param loginCookieValue user login
-  // * @return JSON String of order
-  // */
-  //@GetMapping("/v1/order/get/{orderId}")
-  //@Secured({UserRole.ROLE_USER})
-  //public ResponseEntity<String> getOrder(@PathVariable String orderId, @CookieValue(CookieGenerator.COOKIE_LOGIN) String loginCookieValue) {
-  //  Optional<Order> order = orderRepository.findById(UUID.fromString(orderId));
-  //  if (!order.isPresent()) {
-  //    return new ResponseEntity<>("Bad OrderId", HttpStatus.BAD_REQUEST);
-  //  }
-  //  return ResponseEntity.ok(order.get().toJSON());
-  //}
+        ///**
+        // * gets specified customer order
+        // * @param loginCookieValue user login
+        // * @return JSON String of order
+        // */
+        //@GetMapping("/v1/order/get/{orderId}")
+        //@Secured({UserRole.ROLE_USER})
+        //public ResponseEntity<String> getOrder(@PathVariable String orderId, @CookieValue(CookieGenerator.COOKIE_LOGIN) String loginCookieValue) {
+        //  Optional<Order> order = orderRepository.findById(UUID.fromString(orderId));
+        //  if (!order.isPresent()) {
+        //    return new ResponseEntity<>("Bad OrderId", HttpStatus.BAD_REQUEST);
+        //  }
+        //  return ResponseEntity.ok(order.get().toJSON());
+        //}
     }
 }
