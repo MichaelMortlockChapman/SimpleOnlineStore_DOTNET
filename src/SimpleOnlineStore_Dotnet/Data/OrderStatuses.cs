@@ -5,5 +5,9 @@
         public const string DELIVERY = "DELIVERY";
         public const string COMPLETE = "COMPLETE";
         public const string CANCELED = "CANCELED";
+
+        public static bool IsActive(string orderStatuses) {
+            return !orderStatuses.Equals(CANCELED) || !orderStatuses.Equals(COMPLETE);
+        }
     }
 }

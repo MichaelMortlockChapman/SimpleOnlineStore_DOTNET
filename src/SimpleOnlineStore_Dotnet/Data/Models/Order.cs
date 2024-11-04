@@ -41,5 +41,19 @@ namespace SimpleOnlineStore_Dotnet.Models
             this.Country = country;
             this.Status = status;
         }
+
+        public string ToJSON() {
+            return
+              "{"
+                    + $"Id:{Id},"
+                    + $"CustomerId:{Customer.Id},"
+                    + $"Address:{Address},"
+                    + $"City:{City},"
+                    + $"PostalCode:{PostalCode},"
+                    + $"Country:{Country},"
+                    + $"ProductIds:[{String.Join(",", Products.Select(p => p.Id.ToString()))}],"
+                    + $"ProductQuantities:[{String.Join(",", ProductQuantities)}]"
+            + "}";
+        }
     }   
 }
