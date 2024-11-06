@@ -89,6 +89,7 @@ using (var scope = app.Services.CreateScope()) {
 }
 
 app.Run();
+public partial class Program { }
 
 class GlobalRoutePrefixMiddleware {
     private readonly RequestDelegate _next;

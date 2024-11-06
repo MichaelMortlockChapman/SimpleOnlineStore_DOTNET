@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SimpleOnlineStore_Dotnet.csproj" />
+    <ProjectReference Include="../../src/SimpleOnlineStore_Dotnet/SimpleOnlineStore_Dotnet.csproj" />
   </ItemGroup>
 
 </Project>

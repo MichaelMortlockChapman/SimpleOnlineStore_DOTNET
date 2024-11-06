@@ -30,4 +30,8 @@
     <Folder Include="Migrations\" />
   </ItemGroup>
 
+  <ItemGroup>
+   <InternalsVisibleTo Include="SimpleOnloneStore_Dotnet.Api.Tests" />
+  </ItemGroup>
+
 </Project>
