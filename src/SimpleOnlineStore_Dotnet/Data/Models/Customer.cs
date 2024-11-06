@@ -33,5 +33,16 @@ namespace SimpleOnlineStore_Dotnet.Models
             this.PostalCode = postalCode;
             this.Country = country;
         }
+
+        public string ToJSON() {
+            return
+              "{"
+                    + $"Name:{Name},"
+                    + $"Address:{Address},"
+                    + $"City:{City},"
+                    + $"PostalCode:{PostalCode},"
+                    + $"Country:{Country},"
+            + "}";
+        }
     }
 }

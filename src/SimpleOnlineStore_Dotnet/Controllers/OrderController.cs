@@ -37,8 +37,8 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             public required int[] ProductIds { get; set; }
             public required int[] ProductQuantities { get; set; }
         }
-        [Authorize(Policy = "RequireCustomerRole")]
         [HttpPost("/Customer/CreateSimple")]
+        [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> CreateSimple([FromBody] SimpleOrderDetails simpleOrderDetails) {
             if (simpleOrderDetails.ProductIds.Length != simpleOrderDetails.ProductIds.Length) {
                 return BadRequest("Length of Product IDs does not match length of Product Quantities");
@@ -177,7 +177,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             }
             order.Status = orderStatusUpdate.Status.ToString();
             dataContext.Orders.Update(order);
-            dataContext.SaveChanges();
+            await dataContext.SaveChangesAsync();
             return Ok();
         }
 
@@ -224,7 +224,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             order.PostalCode = customerOrderDetailsUpdate.PostalCode;
             order.Customer = customer;
             dataContext.Orders.Update(order);
-            dataContext.SaveChanges();
+            await dataContext.SaveChangesAsync();
 
             return Ok();
         }
@@ -275,7 +275,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             order.Status = adminOrderDetailsUpdate.Status.ToString();
             order.Customer = customer;
             dataContext.Orders.Update(order);
-            dataContext.SaveChanges();
+            await dataContext.SaveChangesAsync();
 
             return Ok();
         }
