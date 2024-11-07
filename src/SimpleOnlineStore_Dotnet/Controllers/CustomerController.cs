@@ -19,7 +19,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
             this.signInManager = signInManager;
         }
 
-        [HttpGet("/GetDetails")]
+        [HttpGet("GetDetails")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> GetCustomerDetails() {
             User? user = await signInManager.UserManager.GetUserAsync(signInManager.Context.User);
@@ -41,7 +41,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
             public required int PostalCode { get; set; }
             public required string Country { get; set; }
         }
-        [HttpGet("/Update")]
+        [HttpGet("Update")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> UpdateCustomerDetails([FromBody] CustomerDetails customerDetails) {
             User? user = await signInManager.UserManager.GetUserAsync(signInManager.Context.User);

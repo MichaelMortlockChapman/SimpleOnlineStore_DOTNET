@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SimpleOnlineStore_Dotnet.Data;
 using SimpleOnlineStore_Dotnet.Models;
+using static NuGet.Packaging.PackagingConstants;
+using static SimpleOnlineStore_Dotnet.Controllers.ProductController;
 
 namespace SimpleOnlineStore_Dotnet.Controllers
 {
@@ -30,14 +32,14 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             if (customer == null) {
                 return new FindCustomerAction(BadRequest("Invalid User"), null);
             }
-            return new FindCustomerAction(null, customer); 
+            return new FindCustomerAction(null, customer);
         }
 
         public class SimpleOrderDetails {
             public required int[] ProductIds { get; set; }
             public required int[] ProductQuantities { get; set; }
         }
-        [HttpPost("/Customer/CreateSimple")]
+        [HttpPost("Customer/CreateSimple")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> CreateSimple([FromBody] SimpleOrderDetails simpleOrderDetails) {
             if (simpleOrderDetails.ProductIds.Length != simpleOrderDetails.ProductIds.Length) {
@@ -56,15 +58,15 @@ namespace SimpleOnlineStore_Dotnet.Controllers
                 return customerAction.PossibleActionResult != null ? customerAction.PossibleActionResult : StatusCode(500, "Error with TryFindCustomer Function - no action result nor customer");
             }
             Customer customer = customerAction.Customer;
-            Order order = new Order { 
-                Products=products, 
-                ProductQuantities=simpleOrderDetails.ProductQuantities,
-                Address=customer.Address, 
-                City=customer.City, 
-                Country=customer.Country, 
-                PostalCode=customer.PostalCode, 
-                Customer=customer, 
-                Status=OrderStatuses.ORDERED 
+            Order order = new Order {
+                Products = products,
+                ProductQuantities = simpleOrderDetails.ProductQuantities,
+                Address = customer.Address,
+                City = customer.City,
+                Country = customer.Country,
+                PostalCode = customer.PostalCode,
+                Customer = customer,
+                Status = OrderStatuses.ORDERED
             };
             await dataContext.Orders.AddAsync(order);
             await dataContext.SaveChangesAsync();
@@ -81,7 +83,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             public required string CustomerEmail { get; set; }
         }
 
-        [HttpPost("/Customer/Create")]
+        [HttpPost("Customer/Create")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> CreateOrder([FromBody] OrderDetails orderDetails) {
             if (orderDetails.ProductIds.Length != orderDetails.ProductIds.Length) {
@@ -126,7 +128,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             public required OrderStatuses Status { get; set; }
         }
 
-        [HttpPost("/Admin/Create")]
+        [HttpPost("Admin/Create")]
         [Authorize(Policy = "RequireAdminRole")]
         public async Task<ActionResult<string>> AdminCreateOrder([FromBody] AdminOrderDetails adminOrderDetails) {
             if (adminOrderDetails.ProductIds.Length != adminOrderDetails.ProductIds.Length) {
@@ -162,13 +164,13 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             await dataContext.SaveChangesAsync();
             return CreatedAtAction("CreateSimple", "done");
         }
-        
+
 
         public class OrderStatusUpdate {
             public required OrderStatuses Status { get; set; }
             public required Guid OrderId { get; set; }
         }
-        [HttpPut("/Admin/Update/Status")]
+        [HttpPut("Admin/Update/Status")]
         [Authorize(Policy = "RequireAdminRole")]
         public async Task<ActionResult<string>> UpdateOrderStatus([FromBody] OrderStatusUpdate orderStatusUpdate) {
             Order? order = dataContext.Orders.Find(orderStatusUpdate.OrderId);
@@ -190,7 +192,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             public required string Country { get; set; }
             public required Guid OrderId { get; set; }
         }
-        [HttpPut("/Customer/Update")]
+        [HttpPut("Customer/Update")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> CustomerUpdateOrder([FromBody] CustomerOrderDetailsUpdate customerOrderDetailsUpdate) {
             if (customerOrderDetailsUpdate.ProductIds.Length != customerOrderDetailsUpdate.ProductIds.Length) {
@@ -240,7 +242,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             public required Guid OrderId { get; set; }
             public required OrderStatuses Status { get; set; }
         }
-        [HttpPut("/Admin/Update")]
+        [HttpPut("Admin/Update")]
         [Authorize(Policy = "RequireAdminRole")]
         public async Task<ActionResult<string>> AdminUpdateOrder([FromBody] AdminOrderDetailsUpdate adminOrderDetailsUpdate) {
             if (adminOrderDetailsUpdate.ProductIds.Length != adminOrderDetailsUpdate.ProductIds.Length) {
@@ -280,7 +282,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             return Ok();
         }
 
-        [HttpGet("/Customer/Get/Active")]
+        [HttpGet("Customer/Get/Active")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> GetActiveOrders() {
             FindCustomerAction? customerAction = await TryFindCustomer();
@@ -289,10 +291,10 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             }
             Customer customer = customerAction.Customer;
             List<Order> orders = dataContext.Orders.Where(o => o.Customer.Id.Equals(customer.Id) && OrderStatuses.IsActive(o.Status)).ToList();
-            return $"[{String.Join(",", orders.Select(o => o.ToJSON()))}]";
+            return Ok($"[{String.Join(",", orders.Select(o => o.ToJSON()))}]");
         }
 
-        [HttpGet("/Customer/Get/All")]
+        [HttpGet("Customer/Get/All")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> GetAllOrders() {
             FindCustomerAction? customerAction = await TryFindCustomer();
@@ -301,19 +303,43 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             }
             Customer customer = customerAction.Customer;
             List<Order> orders = dataContext.Orders.Where(o => o.Customer.Id.Equals(customer.Id)).ToList();
-            return $"[{String.Join(",", orders.Select(o => o.ToJSON()))}]";
+            return Ok($"[{String.Join(",", orders.Select(o => o.ToJSON()))}]");
         }
 
-        [HttpGet("/Customer/Get")]
+        [HttpGet("Customer/Get/{id}")]
         [Authorize(Policy = "RequireCustomerRole")]
-        public async Task<ActionResult<string>> GetOrder([FromBody] Guid orderId) {
+        public async Task<ActionResult<string>> GetOrder(Guid id) {
             FindCustomerAction? customerAction = await TryFindCustomer();
             if (customerAction.PossibleActionResult != null || customerAction.Customer == null) {
                 return customerAction.PossibleActionResult != null ? customerAction.PossibleActionResult : StatusCode(500, "Error with TryFindCustomer Function - no action result nor customer");
             }
             Customer customer = customerAction.Customer;
-            List<Order> orders = dataContext.Orders.Where(o => o.Customer.Id.Equals(customer.Id) && o.Id.Equals(orderId)).ToList();
-            return $"[{String.Join(",", orders.Select(o => o.ToJSON()))}]";
+            List<Order> orders = dataContext.Orders.Where(o => o.Customer.Id.Equals(customer.Id) && o.Id.Equals(id)).ToList();
+            return Ok($"[{String.Join(",", orders.Select(o => o.ToJSON()))}]");
+        }
+
+        [HttpGet("Admin/GetNext")]
+        [Authorize(Policy = "RequireAdminRole")]
+        public ActionResult<List<Product>> GetNext(Guid? lastId, bool getActiveOnly) {
+            var orderedElements = dataContext.Orders.Where(o => !getActiveOnly || OrderStatuses.IsActive(o.Status)).OrderBy(o => o.DateCreated);
+            List<string> ordersSegment = orderedElements
+                .ThenBy(o => o.Id)
+                .Where(o => o != null && o.Id > lastId)
+                .Take(30)
+                .Select(o => o.ToJSON())
+            .ToList();
+
+            return Ok($"[{String.Join(",", ordersSegment)}]");
+        }
+
+        [HttpGet("Admin/Get/{id}")]
+        [Authorize(Policy = "RequireAdminRole")]
+        public async Task<ActionResult<Product>> Get(Guid id) {
+            Order? order = await dataContext.Orders.FindAsync(id);
+            if (order == null) {
+                return BadRequest("Unknown Product ID");
+            }
+            return Ok(order.ToJSON());
         }
     }
 }

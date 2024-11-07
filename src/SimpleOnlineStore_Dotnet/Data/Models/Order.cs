@@ -24,6 +24,8 @@ namespace SimpleOnlineStore_Dotnet.Models
 
         public string Status { get; set; }
 
+        public DateTime DateCreated { get; set; }
+
         public Order() {
             Products = new List<Product>();
             ProductQuantities = new List<int>();
@@ -40,6 +42,7 @@ namespace SimpleOnlineStore_Dotnet.Models
             this.PostalCode = postalCode;
             this.Country = country;
             this.Status = status;
+            this.DateCreated = DateTime.Now;
         }
 
         public string ToJSON() {
@@ -52,7 +55,8 @@ namespace SimpleOnlineStore_Dotnet.Models
                     + $"PostalCode:{PostalCode},"
                     + $"Country:{Country},"
                     + $"ProductIds:[{String.Join(",", Products.Select(p => p.Id.ToString()))}],"
-                    + $"ProductQuantities:[{String.Join(",", ProductQuantities)}]"
+                    + $"ProductQuantities:[{String.Join(",", ProductQuantities)}],"
+                    + $"DateCreated:{DateCreated.ToUniversalTime()}"
             + "}";
         }
     }   
