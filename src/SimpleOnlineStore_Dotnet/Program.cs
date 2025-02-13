@@ -8,15 +8,16 @@ using SimpleOnlineStore_Dotnet.Data;
 using SimpleOnlineStore_Dotnet.Models;
 using Swashbuckle.AspNetCore.Filters;
 using System.Data;
+using System.Data.Common;
+using System.Net.Http.Headers;
+
 
 var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
 
-// Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options => {
+services.AddControllers();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen(options => {
     options.AddSecurityDefinition("oauth2", new Microsoft.OpenApi.Models.OpenApiSecurityScheme() {
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
         Name = "Authorization",
@@ -26,29 +27,28 @@ builder.Services.AddSwaggerGen(options => {
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
-builder.Services.AddDbContext<DataContext>(options =>
+services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.
-    AddLogging(config => {
+services
+    .AddLogging(config => {
         config.AddConsole();
         config.AddDebug();
     })
     .AddIdentity<User, IdentityRole>(options => {
         options.User.RequireUniqueEmail = true;
     })
-    //.AddIdentityApiEndpoints<IdentityUser>()
     .AddEntityFrameworkStores<DataContext>();
 
-builder.Services.AddAuthorization(options => {
+services.AddAuthorization(options => {
     options.AddPolicy("RequireAdminRole", policy => policy.RequireRole(Roles.ADMIN_ROLE));
     options.AddPolicy("RequireCustomerRole", policy => policy.RequireRole(Roles.CUSTOMER_ROLE));
 });
-builder.Services
+services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie();
 
-builder.Services.ConfigureApplicationCookie(options => {
+services.ConfigureApplicationCookie(options => {
     options.Events.OnRedirectToAccessDenied = context => {
         context.Response.StatusCode = 403;
         return Task.CompletedTask;
@@ -74,18 +74,19 @@ app.UseHttpsRedirection();
 app.UsePathBase(new PathString("/api/v1"));
 
 app.UseCookiePolicy();
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope()) {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-    foreach (string role in Roles.ROLES) {
-        if (!await roleManager.RoleExistsAsync(role)) {
-            await roleManager.CreateAsync(new IdentityRole(role));
-        }
-    }
+foreach (string role in Roles.ROLES) {
+if (!await roleManager.RoleExistsAsync(role)) {
+await roleManager.CreateAsync(new IdentityRole(role));
+}
+}
 }
 
 app.Run();
