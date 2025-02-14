@@ -8,5 +8,8 @@ namespace SimpleOnlineStore_Dotnet.Models
     {
         [ForeignKey(name: "userRoleId")]
         public Guid UserRoleId { get; set; }
+
+        public User() : base() { }
+        public User(string userName) : base(userName) {}
     }
 }

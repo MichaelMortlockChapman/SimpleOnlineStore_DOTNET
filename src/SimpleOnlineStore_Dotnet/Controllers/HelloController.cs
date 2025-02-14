@@ -4,15 +4,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SimpleOnlineStore_Dotnet.Data;
 using SimpleOnlineStore_Dotnet.Models;
+using System.Net.Http;
 
 namespace SimpleOnlineStore_Dotnet.Controllers {
     [ApiController]
     [Route("[controller]")]
     public class HelloController : ControllerBase {
 
-        SignInManager<User> signInManager;
-        public HelloController(SignInManager<User> signInManager) {
-            this.signInManager = signInManager;
+        UserManager<User> userManager;
+        public HelloController(UserManager<User> userManager) {
+            this.userManager = userManager;
         }
 
         [HttpGet("[action]")]
@@ -23,7 +24,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         [Authorize]
         [HttpGet("[action]")]
         public async Task<ActionResult<string>> HelloAuthAsync() {
-            User? user = await signInManager.UserManager.GetUserAsync(signInManager.Context.User);
+            User? user = await userManager.GetUserAsync(User);
             if (user == null) {
                 return BadRequest("Authenticated user doesn't exist");
             }
