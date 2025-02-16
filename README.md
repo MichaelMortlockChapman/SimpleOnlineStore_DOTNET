@@ -28,14 +28,14 @@ All leaf nodes are valid route resolutions. For example The '/Hello' leaf indica
   |   |-- /Customer
   |   |   |-- /Create
   |   |   |-- /CreateSimple
-  |   |   |-- /Update
-  |   |   |-- /Get
+  |   |   |-- /Get/{id}
   |   |   |-- /Get/All
   |   |   `-- /Get/Active
+  |   |   |-- /Update
   |   |-- /Admin
   |   |   |-- /Create
-  |   |   |-- /GetNext
   |   |   |-- /Get/{id}
+  |   |   |-- /GetNext
   |   |   |-- /Update
   |   |   `-- /Update/Status
   `-- /Hello
