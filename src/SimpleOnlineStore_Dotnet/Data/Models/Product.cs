@@ -1,10 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SimpleOnlineStore_Dotnet.Models
-{
-    public class Product
-    {
+namespace SimpleOnlineStore_Dotnet.Models {
+    public class Product {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; private set; }
@@ -18,10 +16,9 @@ namespace SimpleOnlineStore_Dotnet.Models
         /// <summary>
         /// Neeed as it is used by the DB enity constructor
         /// </summary>
-        private Product() {}
+        private Product() { }
 
-        public Product(string name, string decription, double price, int stock)
-        {
+        public Product(string name, string decription, double price, int stock) {
             this.Name = name;
             this.Description = decription;
             this.Price = price;
@@ -29,8 +26,7 @@ namespace SimpleOnlineStore_Dotnet.Models
         }
     }
 
-    public record class ProductDetails
-    {
+    public record class ProductDetails {
         public required string Name { get; set; }
         public required string Description { get; set; }
         public double Price { get; set; }

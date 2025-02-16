@@ -1,15 +1,9 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using SimpleOnlineStore_Dotnet.Data;
 using SimpleOnlineStore_Dotnet.Models;
 using Swashbuckle.AspNetCore.Filters;
-using System.Data;
-using System.Data.Common;
-using System.Net.Http.Headers;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -80,13 +74,13 @@ app.UseAuthorization();
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope()) {
-var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-foreach (string role in Roles.ROLES) {
-if (!await roleManager.RoleExistsAsync(role)) {
-await roleManager.CreateAsync(new IdentityRole(role));
-}
-}
+    foreach (string role in Roles.ROLES) {
+        if (!await roleManager.RoleExistsAsync(role)) {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
 }
 
 app.Run();

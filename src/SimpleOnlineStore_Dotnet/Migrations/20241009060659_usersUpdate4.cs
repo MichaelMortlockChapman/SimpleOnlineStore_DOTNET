@@ -2,14 +2,11 @@
 
 #nullable disable
 
-namespace SimpleOnlineStore_Dotnet.Migrations
-{
+namespace SimpleOnlineStore_Dotnet.Migrations {
     /// <inheritdoc />
-    public partial class usersUpdate4 : Migration
-    {
+    public partial class usersUpdate4 : Migration {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
+        protected override void Up(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropForeignKey(
                 name: "FK_Admins_Admins_creatorId",
                 table: "Admins");
@@ -96,8 +93,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+        protected override void Down(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropForeignKey(
                 name: "FK_Admins_Admins_CreatorId",
                 table: "Admins");

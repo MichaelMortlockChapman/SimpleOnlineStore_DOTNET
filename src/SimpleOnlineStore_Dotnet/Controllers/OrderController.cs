@@ -3,28 +3,23 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SimpleOnlineStore_Dotnet.Data;
 using SimpleOnlineStore_Dotnet.Models;
-using static NuGet.Packaging.PackagingConstants;
-using static SimpleOnlineStore_Dotnet.Controllers.ProductController;
 
-namespace SimpleOnlineStore_Dotnet.Controllers
-{
+namespace SimpleOnlineStore_Dotnet.Controllers {
     [Authorize]
     [Route("[controller]")]
     [ApiController]
     public class OrderController : ControllerBase {
         private readonly DataContext dataContext;
-        private readonly SignInManager<User> signInManager;
         private readonly UserManager<User> userManager;
 
-        public OrderController(DataContext dataContext, SignInManager<User> signInManager, UserManager<User> userManager) {
+        public OrderController(DataContext dataContext, UserManager<User> userManager) {
             this.dataContext = dataContext;
-            this.signInManager = signInManager;
             this.userManager = userManager;
         }
 
         private record FindCustomerAction(ActionResult<string>? PossibleActionResult, Customer? Customer);
         private async Task<FindCustomerAction> TryFindCustomer() {
-            User? user = await signInManager.UserManager.GetUserAsync(signInManager.Context.User);
+            User? user = await userManager.GetUserAsync(User);
             if (user == null) {
                 return new FindCustomerAction(BadRequest("Invalid User"), null);
             }
@@ -86,7 +81,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
         [HttpPost("Customer/Create")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> CreateOrder([FromBody] OrderDetails orderDetails) {
-            if (orderDetails.ProductIds.Length != orderDetails.ProductIds.Length) {
+            if (orderDetails.ProductIds.Length != orderDetails.ProductQuantities.Length) {
                 return BadRequest("Length of Product IDs does not match length of Product Quantities");
             }
             List<Product> products = new List<Product>();
@@ -125,7 +120,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             public required int PostalCode { get; set; }
             public required string Country { get; set; }
             public required string CustomerEmail { get; set; }
-            public required OrderStatuses Status { get; set; }
+            public required OrderStatuses.Statuses Status { get; set; }
         }
 
         [HttpPost("Admin/Create")]
@@ -165,9 +160,8 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             return CreatedAtAction("CreateSimple", "done");
         }
 
-
         public class OrderStatusUpdate {
-            public required OrderStatuses Status { get; set; }
+            public required OrderStatuses.Statuses Status { get; set; }
             public required Guid OrderId { get; set; }
         }
         [HttpPut("Admin/Update/Status")]
@@ -215,7 +209,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             if (order == null) {
                 return BadRequest("Invalid Order Id");
             }
-            if (order.Status.Equals(OrderStatuses.ORDERED)) {
+            if (!order.Status.Equals(OrderStatuses.ORDERED)) {
                 return BadRequest("Order underway or cancelled");
             }
             order.Products = products;
@@ -240,7 +234,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
             public required string Country { get; set; }
             public required string CustomerEmail { get; set; }
             public required Guid OrderId { get; set; }
-            public required OrderStatuses Status { get; set; }
+            public required OrderStatuses.Statuses Status { get; set; }
         }
         [HttpPut("Admin/Update")]
         [Authorize(Policy = "RequireAdminRole")]
@@ -290,7 +284,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
                 return customerAction.PossibleActionResult != null ? customerAction.PossibleActionResult : StatusCode(500, "Error with TryFindCustomer Function - no action result nor customer");
             }
             Customer customer = customerAction.Customer;
-            List<Order> orders = dataContext.Orders.Where(o => o.Customer.Id.Equals(customer.Id) && OrderStatuses.IsActive(o.Status)).ToList();
+            List<Order> orders = dataContext.Orders.Where(o => o.Customer.Id.Equals(customer.Id) && OrderStatuses.IsActive(OrderStatuses.ToEnum(o.Status))).ToList();
             return Ok($"[{String.Join(",", orders.Select(o => o.ToJSON()))}]");
         }
 
@@ -321,7 +315,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers
         [HttpGet("Admin/GetNext")]
         [Authorize(Policy = "RequireAdminRole")]
         public ActionResult<List<Product>> GetNext(Guid? lastId, bool getActiveOnly) {
-            var orderedElements = dataContext.Orders.Where(o => !getActiveOnly || OrderStatuses.IsActive(o.Status)).OrderBy(o => o.DateCreated);
+            var orderedElements = dataContext.Orders.Where(o => !getActiveOnly || OrderStatuses.IsActive(OrderStatuses.ToEnum(o.Status))).OrderBy(o => o.DateCreated);
             List<string> ordersSegment = orderedElements
                 .ThenBy(o => o.Id)
                 .Where(o => o != null && o.Id > lastId)

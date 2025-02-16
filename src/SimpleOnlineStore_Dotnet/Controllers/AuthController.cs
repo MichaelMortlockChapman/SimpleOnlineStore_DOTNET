@@ -1,9 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SimpleOnlineStore_Dotnet.Data;
 using SimpleOnlineStore_Dotnet.Models;
-using System.Linq;
+using System.Net;
 
 namespace SimpleOnlineStore_Dotnet.Controllers {
     [Route("[controller]")]
@@ -13,18 +12,14 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         private readonly DataContext dataContext;
         SignInManager<User> signInManager;
         UserManager<User> userManager;
-        RoleManager<IdentityRole> roleManager;
         readonly ILogger<AuthController> logger;
 
         public AuthController(
-            UserManager<User> userManager, 
-            RoleManager<IdentityRole> roleManager,
+            UserManager<User> userManager,
             SignInManager<User> signInManager,
             ILogger<AuthController> logger,
-            DataContext dataContext)
-          {
+            DataContext dataContext) {
             this.userManager = userManager;
-            this.roleManager = roleManager;
             this.signInManager = signInManager;
             this.logger = logger;
             this.dataContext = dataContext;
@@ -44,7 +39,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
             if (await userManager.FindByEmailAsync(details.Email) != null) {
                 return BadRequest("Username already exists");
             }
-            Customer customer = new Customer { Name=details.Name, Address=details.Address, City=details.City, Country=details.Country, PostalCode=details.PostalCode };
+            Customer customer = new Customer { Name = details.Name, Address = details.Address, City = details.City, Country = details.Country, PostalCode = details.PostalCode };
             dataContext.Add(customer);
             User user = new User { UserName = details.Email, Email = details.Email, UserRoleId = customer.Id };
             var result = await userManager.CreateAsync(user, details.Password);
@@ -58,7 +53,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
             } else {
                 await dataContext.DisposeAsync();
                 logger.LogError("Error Creating User");
-                return BadRequest(result.Errors);
+                return StatusCode((int)HttpStatusCode.InternalServerError);
             }
         }
 
@@ -72,7 +67,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
             if (user == null) {
                 return Unauthorized();
             }
-            var result = await signInManager.CheckPasswordSignInAsync(user, details.Password,lockoutOnFailure: false);
+            var result = await signInManager.CheckPasswordSignInAsync(user, details.Password, lockoutOnFailure: false);
             if (result.Succeeded) {
                 await signInManager.SignInAsync(user, isPersistent: false);
                 logger.LogInformation("User Logged In");

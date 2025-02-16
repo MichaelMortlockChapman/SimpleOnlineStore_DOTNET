@@ -1,38 +1,29 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SimpleOnlineStore_Dotnet.Data;
 using SimpleOnlineStore_Dotnet.Models;
-using System.Linq;
 
-namespace SimpleOnlineStore_Dotnet.Controllers
-{
-    [Authorize]
+namespace SimpleOnlineStore_Dotnet.Controllers {
+    [Authorize(Policy = "RequireAdminRole")]
     [Route("[controller]")]
     [ApiController]
-    public class ProductController : ControllerBase
-    {
+    public class ProductController : ControllerBase {
         private readonly DataContext _dataContext;
 
-        public ProductController(DataContext dataContext)
-        {
+        public ProductController(DataContext dataContext) {
             _dataContext = dataContext;
         }
 
-        public enum ProductSortBy
-        {
+        public enum ProductSortBy {
             Name,
             Price
         }
 
         [AllowAnonymous]
         [HttpGet("[action]")]
-        public async Task<ActionResult<List<Product>>> GetNext(int? lastId, ProductSortBy sortBy)
-        {
+        public async Task<ActionResult<List<Product>>> GetNext(int? lastId, ProductSortBy sortBy) {
             var orderedElements = _dataContext.Products.OrderBy(p => p.Name);
-            switch (sortBy)
-            {
+            switch (sortBy) {
                 default:
                 case ProductSortBy.Name:
                     orderedElements = _dataContext.Products.OrderBy(p => p.Name);
@@ -52,19 +43,16 @@ namespace SimpleOnlineStore_Dotnet.Controllers
 
         [AllowAnonymous]
         [HttpGet("[action]/{id}")]
-        public async Task<ActionResult<Product>> Get(int id)
-        {
+        public async Task<ActionResult<Product>> Get(int id) {
             Product? product = await _dataContext.Products.FindAsync(id);
-            if (product == null)
-            {
+            if (product == null) {
                 return BadRequest("Unknown Product ID");
             }
             return Ok(product);
         }
 
         [HttpPost("[action]")]
-        public async Task<ActionResult<string>> Create(ProductDetails productDetails)
-        {
+        public async Task<ActionResult<string>> Create(ProductDetails productDetails) {
             Product product = new(productDetails.Name, productDetails.Description, productDetails.Price, productDetails.Stock);
             await _dataContext.Products.AddAsync(product);
             await _dataContext.SaveChangesAsync();
@@ -72,12 +60,10 @@ namespace SimpleOnlineStore_Dotnet.Controllers
         }
 
         [HttpDelete("[action]")]
-        public async Task<ActionResult<string>> Delete(int id)
-        {
+        public async Task<ActionResult<string>> Delete(int id) {
             Product? product = await _dataContext.Products.FindAsync(id);
 
-            if (product == null)
-            {
+            if (product == null) {
                 return BadRequest("Unknown Product ID");
             }
             _dataContext.Products.Remove(product);
@@ -86,11 +72,9 @@ namespace SimpleOnlineStore_Dotnet.Controllers
         }
 
         [HttpPut("[action]")]
-        public async Task<ActionResult<string>> Update(int id, ProductDetails productDetails)
-        {
+        public async Task<ActionResult<string>> Update(int id, ProductDetails productDetails) {
             Product? product = await _dataContext.Products.FindAsync(id);
-            if (product == null)
-            {
+            if (product == null) {
                 return BadRequest("Unknown Product ID");
             }
             product.Name = productDetails.Name;

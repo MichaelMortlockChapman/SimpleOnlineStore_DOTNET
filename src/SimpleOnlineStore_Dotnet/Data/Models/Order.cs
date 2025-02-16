@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace SimpleOnlineStore_Dotnet.Models
-{
-    public class Order
-    {
+﻿namespace SimpleOnlineStore_Dotnet.Models {
+    public class Order {
         public Guid Id { get; set; }
 
         public ICollection<Product> Products { get; set; }
@@ -32,8 +25,7 @@ namespace SimpleOnlineStore_Dotnet.Models
         }
 
         public Order(ICollection<Product> products, ICollection<int> productQuantities, Customer customer, string address, string city,
-            int postalCode, string country, string status)
-        {
+            int postalCode, string country, string status) {
             this.Products = products;
             this.ProductQuantities = productQuantities;
             this.Customer = customer;
@@ -59,5 +51,5 @@ namespace SimpleOnlineStore_Dotnet.Models
                     + $"DateCreated:{DateCreated.ToUniversalTime()}"
             + "}";
         }
-    }   
+    }
 }

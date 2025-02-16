@@ -1,16 +1,12 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace SimpleOnlineStore_Dotnet.Migrations
-{
+namespace SimpleOnlineStore_Dotnet.Migrations {
     /// <inheritdoc />
-    public partial class usersUpdate3 : Migration
-    {
+    public partial class usersUpdate3 : Migration {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
+        protected override void Up(MigrationBuilder migrationBuilder) {
             migrationBuilder.AddColumn<Guid>(
                 name: "userRoleId",
                 table: "AspNetUsers",
@@ -20,8 +16,7 @@ namespace SimpleOnlineStore_Dotnet.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
+        protected override void Down(MigrationBuilder migrationBuilder) {
             migrationBuilder.DropColumn(
                 name: "userRoleId",
                 table: "AspNetUsers");

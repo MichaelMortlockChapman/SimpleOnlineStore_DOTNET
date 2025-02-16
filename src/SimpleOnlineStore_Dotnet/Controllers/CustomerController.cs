@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SimpleOnlineStore_Dotnet.Data;
@@ -12,17 +11,17 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
     [ApiController]
     public class CustomerController : Controller {
         private readonly DataContext dataContext;
-        private readonly SignInManager<User> signInManager;
+        private readonly UserManager<User> userManager;
 
-        public CustomerController(DataContext dataContext, SignInManager<User> signInManager) {
+        public CustomerController(DataContext dataContext, UserManager<User> userManager) {
             this.dataContext = dataContext;
-            this.signInManager = signInManager;
+            this.userManager = userManager;
         }
 
         [HttpGet("GetDetails")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> GetCustomerDetails() {
-            User? user = await signInManager.UserManager.GetUserAsync(signInManager.Context.User);
+            User? user = await userManager.GetUserAsync(User);
             if (user == null) {
                 return BadRequest("Invalid User");
             }
@@ -44,7 +43,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         [HttpGet("Update")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> UpdateCustomerDetails([FromBody] CustomerDetails customerDetails) {
-            User? user = await signInManager.UserManager.GetUserAsync(signInManager.Context.User);
+            User? user = await userManager.GetUserAsync(User);
             if (user == null) {
                 return BadRequest("Invalid User");
             }

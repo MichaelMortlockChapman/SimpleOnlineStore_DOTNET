@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34622.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleOnlineStore_Dotnet", "src\SimpleOnlineStore_Dotnet\SimpleOnlineStore_Dotnet.csproj", "{9A1B42DF-9A8C-4ACD-AAE1-1142274D7BFF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleOnloneStore_Dotnet.Api.Tests", "tests\SimpleOnloneStore_Dotnet.Api.Tests\SimpleOnloneStore_Dotnet.Api.Tests.csproj", "{DE937BB8-4F59-46AD-B4C5-793F5B1B4A9D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9A1B42DF-9A8C-4ACD-AAE1-1142274D7BFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A1B42DF-9A8C-4ACD-AAE1-1142274D7BFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A1B42DF-9A8C-4ACD-AAE1-1142274D7BFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A1B42DF-9A8C-4ACD-AAE1-1142274D7BFF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE937BB8-4F59-46AD-B4C5-793F5B1B4A9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE937BB8-4F59-46AD-B4C5-793F5B1B4A9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE937BB8-4F59-46AD-B4C5-793F5B1B4A9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE937BB8-4F59-46AD-B4C5-793F5B1B4A9D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5EC891AC-CB35-4A1A-91EB-B05BA9B53D1A}
+	EndGlobalSection
+EndGlobal

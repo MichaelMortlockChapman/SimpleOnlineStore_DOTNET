@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 
-namespace SimpleOnlineStore_Dotnet.Models
-{
-    public class Customer
-    {
+namespace SimpleOnlineStore_Dotnet.Models {
+    public class Customer {
         [Key]
         public Guid Id { get; set; }
 
@@ -25,8 +23,7 @@ namespace SimpleOnlineStore_Dotnet.Models
         public Customer() { }
 
         public Customer(string name, string address,
-            string city, int postalCode, string country)
-        {
+            string city, int postalCode, string country) {
             this.Name = name;
             this.Address = address;
             this.City = city;
