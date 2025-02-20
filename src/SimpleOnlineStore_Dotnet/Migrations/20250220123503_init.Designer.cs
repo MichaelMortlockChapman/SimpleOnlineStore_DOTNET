@@ -12,15 +12,15 @@ using SimpleOnlineStore_Dotnet.Data;
 namespace SimpleOnlineStore_Dotnet.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20241009060659_usersUpdate4")]
-    partial class usersUpdate4
+    [Migration("20250220123503_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("ProductVersion", "9.0.2")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -227,10 +227,13 @@ namespace SimpleOnlineStore_Dotnet.Migrations
                     b.Property<Guid>("CustomerId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<int>("PostalCode")
                         .HasColumnType("integer");
 
-                    b.Property<int[]>("ProductQuantities")
+                    b.PrimitiveCollection<int[]>("ProductQuantities")
                         .IsRequired()
                         .HasColumnType("integer[]");
 
@@ -422,13 +425,13 @@ namespace SimpleOnlineStore_Dotnet.Migrations
             modelBuilder.Entity("SimpleOnlineStore_Dotnet.Models.Product", b =>
                 {
                     b.HasOne("SimpleOnlineStore_Dotnet.Models.Order", null)
-                        .WithMany("ProductIds")
+                        .WithMany("Products")
                         .HasForeignKey("OrderId");
                 });
 
             modelBuilder.Entity("SimpleOnlineStore_Dotnet.Models.Order", b =>
                 {
-                    b.Navigation("ProductIds");
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

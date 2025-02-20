@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using SimpleOnlineStore_Dotnet.Models;
 
-
 namespace SimpleOnlineStore_Dotnet.Data {
     public interface IDataContext {
         public DbSet<Admin> Admins { get; set; }
