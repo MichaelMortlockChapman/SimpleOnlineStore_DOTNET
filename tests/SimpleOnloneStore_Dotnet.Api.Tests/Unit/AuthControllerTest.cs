@@ -88,10 +88,10 @@ namespace SimpleOnloneStore_Dotnet.Api.Tests {
             };
 
             var tmp = await controller.Register(details);
-            var result = tmp.Result as StatusCodeResult;
+            var result = tmp.Result as BadRequestObjectResult;
 
             Assert.NotNull(result);
-            Assert.Equal((int)HttpStatusCode.InternalServerError, result.StatusCode);
+            Assert.Equal((int)HttpStatusCode.BadRequest, result.StatusCode);
         }
 
         [Fact]

@@ -53,7 +53,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
             } else {
                 await dataContext.DisposeAsync();
                 logger.LogError("Error Creating User");
-                return StatusCode((int)HttpStatusCode.InternalServerError);
+                return BadRequest(result.Errors);
             }
         }
 

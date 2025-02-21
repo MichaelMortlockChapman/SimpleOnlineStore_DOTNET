@@ -5,7 +5,6 @@ using SimpleOnlineStore_Dotnet.Data;
 using SimpleOnlineStore_Dotnet.Models;
 using Swashbuckle.AspNetCore.Filters;
 
-
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
@@ -40,7 +39,10 @@ services.AddAuthorization(options => {
 });
 services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie();
+    .AddCookie(options => {
+        options.Cookie.IsEssential = true;
+        options.Cookie.HttpOnly = false;
+    });
 
 services.ConfigureApplicationCookie(options => {
     options.Events.OnRedirectToAccessDenied = context => {
@@ -51,6 +53,10 @@ services.ConfigureApplicationCookie(options => {
         context.Response.StatusCode = 401;
         return Task.CompletedTask;
     };
+});
+
+services.Configure<CookiePolicyOptions>(options => {
+    options.MinimumSameSitePolicy = SameSiteMode.Lax;
 });
 
 var app = builder.Build();
