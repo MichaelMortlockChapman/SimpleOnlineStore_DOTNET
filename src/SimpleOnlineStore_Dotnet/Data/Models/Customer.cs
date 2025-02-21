@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics.Metrics;
+using System.Net;
+using System.Xml.Linq;
 
 namespace SimpleOnlineStore_Dotnet.Models {
     public class Customer {
@@ -20,10 +24,17 @@ namespace SimpleOnlineStore_Dotnet.Models {
         [ProtectedPersonalData]
         public string Country { get; set; }
 
-        public Customer() { }
+        public Customer() {
+            this.Name = default!;
+            this.Address = default!;
+            this.City = default!;
+            this.PostalCode = default!;
+            this.Country = default!;
+            Id = Guid.NewGuid();
+        }
 
         public Customer(string name, string address,
-            string city, int postalCode, string country) {
+            string city, int postalCode, string country) : this() {
             this.Name = name;
             this.Address = address;
             this.City = city;

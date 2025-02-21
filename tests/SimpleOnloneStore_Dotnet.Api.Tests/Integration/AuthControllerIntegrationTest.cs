@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Respawn;
+using SimpleOnlineStore_Dotnet.Data;
+using SimpleOnlineStore_Dotnet.Models;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -30,6 +33,13 @@ namespace SimpleOnloneStore_Dotnet.Api.Tests.Integration {
                 });
             }
             await DisposeAsync();
+            using (var scope = _factory.Services.CreateScope()) {
+                JsonElement superUserDetails = CustomWebAppFactory.GetSuperUserDetails();
+                string username = superUserDetails.GetProperty("UserName").ToString();
+                string email = superUserDetails.GetProperty("Email").ToString();
+                string password = superUserDetails.GetProperty("Password").ToString();
+                await Program.TryAddSuperUser(scope, username, email, password);
+            }
         }
 
         public async Task DisposeAsync() {
@@ -47,6 +57,32 @@ namespace SimpleOnloneStore_Dotnet.Api.Tests.Integration {
             var result = await client.GetAsync("api/v1/Hello/HelloAuth");
 
             Assert.Equal(HttpStatusCode.Unauthorized, result.StatusCode);
+        }
+
+        [Fact]
+        public async Task Get_HelloAdmin_ReturnsOkForAdminUser() {
+            var client = _factory.CreateClient();
+            var result = await client.PostAsJsonAsync("api/v1/Auth/Login", CustomWebAppFactory.GetSuperUserLoginDetails());
+            var cookies = result.Headers.SingleOrDefault(header => header.Key == "Set-Cookie").Value;
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/v1/Hello/HelloAdmin");
+            request.Headers.Add("Cookie", cookies);
+
+            var result2 = await client.SendAsync(request);
+
+            Assert.Equal(HttpStatusCode.OK, result2.StatusCode);
+        }
+
+        [Fact]
+        public async Task Get_HelloCustomer_Returns403ForAdminUser() {
+            var client = _factory.CreateClient();
+            var result = await client.PostAsJsonAsync("api/v1/Auth/Login", CustomWebAppFactory.GetSuperUserLoginDetails());
+            var cookies = result.Headers.SingleOrDefault(header => header.Key == "Set-Cookie").Value;
+            var request = new HttpRequestMessage(HttpMethod.Get, "api/v1/Hello/HelloCustomer");
+            request.Headers.Add("Cookie", cookies);
+
+            var result2 = await client.SendAsync(request);
+
+            Assert.Equal(HttpStatusCode.Forbidden, result2.StatusCode);
         }
 
         [Fact]
@@ -84,7 +120,6 @@ namespace SimpleOnloneStore_Dotnet.Api.Tests.Integration {
         public async Task Post_Register_Returns400ForDupeEmail() {
             var clientOptions = new WebApplicationFactoryClientOptions() {
                 HandleCookies = true
-
             };
             var client = _factory.CreateClient(clientOptions);
             JsonObject data = new() {
@@ -107,7 +142,6 @@ namespace SimpleOnloneStore_Dotnet.Api.Tests.Integration {
         public async Task Post_Register_Returns400ForBadPassword() {
             var clientOptions = new WebApplicationFactoryClientOptions() {
                 HandleCookies = true
-
             };
             var client = _factory.CreateClient(clientOptions);
             JsonObject data = new() {

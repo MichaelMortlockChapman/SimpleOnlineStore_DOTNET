@@ -3,8 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SimpleOnlineStore_Dotnet.Models {
     public class Product {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; private set; }
         [MaxLength(50)]
         public string Name { get; set; }

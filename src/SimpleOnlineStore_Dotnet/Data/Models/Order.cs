@@ -1,5 +1,11 @@
-﻿namespace SimpleOnlineStore_Dotnet.Models {
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.Metrics;
+using System.Net;
+
+namespace SimpleOnlineStore_Dotnet.Models {
     public class Order {
+        [Key]
         public Guid Id { get; set; }
 
         public ICollection<Product> Products { get; set; }
@@ -20,12 +26,20 @@
         public DateTime DateCreated { get; set; }
 
         public Order() {
+            Id = Guid.NewGuid();
             Products = new List<Product>();
             ProductQuantities = new List<int>();
+            this.Customer = default!;
+            this.Address = default!;
+            this.City = default!;
+            this.PostalCode = default!;
+            this.Country = default!;
+            this.Status = default!;
+            this.DateCreated = default!;
         }
 
         public Order(ICollection<Product> products, ICollection<int> productQuantities, Customer customer, string address, string city,
-            int postalCode, string country, string status) {
+            int postalCode, string country, string status) : this() {
             this.Products = products;
             this.ProductQuantities = productQuantities;
             this.Customer = customer;

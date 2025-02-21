@@ -89,8 +89,40 @@ using (var scope = app.Services.CreateScope()) {
     }
 }
 
+// create admin (super) user for solution
+string userName = builder.Configuration["SuperUser:UserName"]
+    ?? throw new Exception("Invalid AppSettings.json - SuperUser:UserName is null");
+string email = builder.Configuration["SuperUser:Email"]
+    ?? throw new Exception("Invalid AppSettings.json  - SuperUser:Email is null");
+string password = builder.Configuration["SuperUser:Password"]
+    ?? throw new Exception("Invalid AppSettings.json  - SuperUser:Password is null");
+using (var scope = app.Services.CreateScope()) {
+    await Program.TryAddSuperUser(scope, userName, email, password);
+}
+
 app.Run();
-public partial class Program { }
+
+public partial class Program {
+    public static async Task TryAddSuperUser(IServiceScope scope, string userName, string email, string password) {
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
+        var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
+
+        var _superUser = await userManager.FindByEmailAsync(email);
+        if (_superUser == null) {
+            var admin = new Admin() { Creation = DateTime.UtcNow };
+            admin.Creator = admin;
+            var superUser = new User { UserName = userName, Email = email, UserRoleId = admin.Id };
+            var superUserCreation = await userManager.CreateAsync(superUser, password);
+            if (superUserCreation.Succeeded) {
+                await userManager.AddToRoleAsync(superUser, Roles.ADMIN_ROLE);
+                await dataContext.AddAsync(admin);
+                await dataContext.SaveChangesAsync();
+            } else {
+                throw new Exception("Error creating SuperUser");
+            }
+        }
+    }
+}
 
 class GlobalRoutePrefixMiddleware {
     private readonly RequestDelegate _next;
