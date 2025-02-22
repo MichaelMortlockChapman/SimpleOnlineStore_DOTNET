@@ -103,7 +103,11 @@ using (var scope = app.Services.CreateScope()) {
 app.Run();
 
 public partial class Program {
+    private static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1);
+
     public static async Task TryAddSuperUser(IServiceScope scope, string userName, string email, string password) {
+        await semaphoreSlim.WaitAsync();
+
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<User>>();
         var dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
 
@@ -118,9 +122,11 @@ public partial class Program {
                 await dataContext.AddAsync(admin);
                 await dataContext.SaveChangesAsync();
             } else {
+                semaphoreSlim.Release();
                 throw new Exception("Error creating SuperUser");
             }
         }
+        semaphoreSlim.Release();
     }
 }
 
