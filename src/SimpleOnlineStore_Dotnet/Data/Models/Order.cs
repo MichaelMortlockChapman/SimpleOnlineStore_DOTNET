@@ -35,7 +35,7 @@ namespace SimpleOnlineStore_Dotnet.Models {
             this.PostalCode = default!;
             this.Country = default!;
             this.Status = default!;
-            this.DateCreated = default!;
+            this.DateCreated = DateTime.Now;
         }
 
         public Order(ICollection<Product> products, ICollection<int> productQuantities, Customer customer, string address, string city,

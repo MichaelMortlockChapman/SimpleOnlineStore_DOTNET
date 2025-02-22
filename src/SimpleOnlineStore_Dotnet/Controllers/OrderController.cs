@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SimpleOnlineStore_Dotnet.Data;
 using SimpleOnlineStore_Dotnet.Models;
+using static SimpleOnlineStore_Dotnet.Controllers.OrderController;
 
 namespace SimpleOnlineStore_Dotnet.Controllers {
     [Authorize]
@@ -17,17 +18,32 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
             this.userManager = userManager;
         }
 
-        private record FindCustomerAction(ActionResult<string>? PossibleActionResult, Customer? Customer);
-        private async Task<FindCustomerAction> TryFindCustomer() {
-            User? user = await userManager.GetUserAsync(User);
+        private record FindCustomerResult(bool succeeded, string? errorMsg, Customer? customer);
+        private async Task<FindCustomerResult> TryFindCustomer(User? user) {
             if (user == null) {
-                return new FindCustomerAction(BadRequest("Invalid User"), null);
+                return new FindCustomerResult(false, "Invalid User", null);
             }
             Customer? customer = await dataContext.Customers.FindAsync(user.UserRoleId);
             if (customer == null) {
-                return new FindCustomerAction(BadRequest("Invalid User"), null);
+                return new FindCustomerResult(false, "Invalid Customer", null);
             }
-            return new FindCustomerAction(null, customer);
+            return new FindCustomerResult(true, null, customer);
+        }
+
+        private record ProductValidationResult(bool succeeded, string? errorMsg, List<Product>? products);
+        private async Task<ProductValidationResult> ValidateProducts(int[] productIds, int[] productQuantities) {
+            if (productIds.Length != productQuantities.Length) {
+                return new ProductValidationResult(false, "Length of Product IDs does not match length of Product Quantities", null);
+            }
+            List<Product> products = new List<Product>();
+            foreach (var productEntry in productIds) {
+                Product? p = await dataContext.Products.FindAsync(productEntry);
+                if (p == null) {
+                    return new ProductValidationResult(false, "Invalid Product ID", null);
+                }
+                products.Add(p);
+            }
+            return new ProductValidationResult(true, null, products);
         }
 
         public class SimpleOrderDetails {
@@ -37,22 +53,16 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         [HttpPost("Customer/CreateSimple")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> CreateSimple([FromBody] SimpleOrderDetails simpleOrderDetails) {
-            if (simpleOrderDetails.ProductIds.Length != simpleOrderDetails.ProductIds.Length) {
-                return BadRequest("Length of Product IDs does not match length of Product Quantities");
+            var productValidResult = await ValidateProducts(simpleOrderDetails.ProductIds, simpleOrderDetails.ProductQuantities);
+            if (!productValidResult.succeeded) {
+                return BadRequest(productValidResult.errorMsg);
             }
-            List<Product> products = new List<Product>();
-            foreach (var productEntry in simpleOrderDetails.ProductIds) {
-                Product? p = await dataContext.Products.FindAsync(productEntry);
-                if (p == null) {
-                    return BadRequest("Invalid Product ID");
-                }
-                products.Add(p);
+            List<Product> products = productValidResult.products!;
+            FindCustomerResult? customerResult = await TryFindCustomer(await userManager.GetUserAsync(User));
+            if (!customerResult.succeeded) {
+                return BadRequest(customerResult.errorMsg);
             }
-            FindCustomerAction? customerAction = await TryFindCustomer();
-            if (customerAction.PossibleActionResult != null || customerAction.Customer == null) {
-                return customerAction.PossibleActionResult != null ? customerAction.PossibleActionResult : StatusCode(500, "Error with TryFindCustomer Function - no action result nor customer");
-            }
-            Customer customer = customerAction.Customer;
+            Customer customer = customerResult.customer!;
             Order order = new Order {
                 Products = products,
                 ProductQuantities = simpleOrderDetails.ProductQuantities,
@@ -81,22 +91,16 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         [HttpPost("Customer/Create")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> CreateOrder([FromBody] OrderDetails orderDetails) {
-            if (orderDetails.ProductIds.Length != orderDetails.ProductQuantities.Length) {
-                return BadRequest("Length of Product IDs does not match length of Product Quantities");
+            var productValidResult = await ValidateProducts(orderDetails.ProductIds, orderDetails.ProductQuantities);
+            if (!productValidResult.succeeded) {
+                return BadRequest(productValidResult.errorMsg);
             }
-            List<Product> products = new List<Product>();
-            foreach (var productEntry in orderDetails.ProductIds) {
-                Product? p = await dataContext.Products.FindAsync(productEntry);
-                if (p == null) {
-                    return BadRequest("Invalid Product ID");
-                }
-                products.Add(p);
+            List<Product> products = productValidResult.products!;
+            FindCustomerResult? customerResult = await TryFindCustomer(await userManager.GetUserAsync(User));
+            if (!customerResult.succeeded) {
+                return BadRequest(customerResult.errorMsg);
             }
-            FindCustomerAction? customerAction = await TryFindCustomer();
-            if (customerAction.PossibleActionResult != null || customerAction.Customer == null) {
-                return customerAction.PossibleActionResult != null ? customerAction.PossibleActionResult : StatusCode(500, "Error with TryFindCustomer Function - no action result nor customer");
-            }
-            Customer customer = customerAction.Customer;
+            Customer customer = customerResult.customer!;
             Order order = new Order {
                 Products = products,
                 ProductQuantities = orderDetails.ProductQuantities,
@@ -126,35 +130,26 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         [HttpPost("Admin/Create")]
         [Authorize(Policy = "RequireAdminRole")]
         public async Task<ActionResult<string>> AdminCreateOrder([FromBody] AdminOrderDetails adminOrderDetails) {
-            if (adminOrderDetails.ProductIds.Length != adminOrderDetails.ProductIds.Length) {
-                return BadRequest("Length of Product IDs does not match length of Product Quantities");
+            var productValidResult = await ValidateProducts(adminOrderDetails.ProductIds, adminOrderDetails.ProductQuantities);
+            if (!productValidResult.succeeded) {
+                return BadRequest(productValidResult.errorMsg);
             }
-            List<Product> products = new List<Product>();
-            foreach (var productEntry in adminOrderDetails.ProductIds) {
-                Product? p = await dataContext.Products.FindAsync(productEntry);
-                if (p == null) {
-                    return BadRequest("Invalid Product ID");
-                }
-                products.Add(p);
+            List<Product> products = productValidResult.products!;
+            FindCustomerResult? customerResult = await TryFindCustomer(await userManager.FindByEmailAsync(adminOrderDetails.CustomerEmail));
+            if (!customerResult.succeeded) {
+                return BadRequest(customerResult.errorMsg);
             }
-            User? user = await userManager.FindByEmailAsync(adminOrderDetails.CustomerEmail);
-            if (user == null) {
-                return BadRequest("Invalid User");
-            }
-            Customer? customer = await dataContext.Customers.FindAsync(user.UserRoleId);
-            if (customer == null) {
-                return BadRequest("Invalid User");
-            }
-            Order order = new Order {
-                Products = products,
-                ProductQuantities = adminOrderDetails.ProductQuantities,
-                Address = adminOrderDetails.Address,
-                City = adminOrderDetails.City,
-                Country = adminOrderDetails.Country,
-                PostalCode = adminOrderDetails.PostalCode,
-                Customer = customer,
-                Status = adminOrderDetails.Status.ToString(),
-            };
+            Customer customer = customerResult.customer!;
+            Order order = new Order (
+                products,
+                adminOrderDetails.ProductQuantities,
+                customer,
+                adminOrderDetails.Address,
+                adminOrderDetails.City,
+                adminOrderDetails.PostalCode,
+                adminOrderDetails.Country,
+                adminOrderDetails.Status.ToString()
+            );
             await dataContext.Orders.AddAsync(order);
             await dataContext.SaveChangesAsync();
             return CreatedAtAction("CreateSimple", "done");
@@ -189,22 +184,16 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         [HttpPut("Customer/Update")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> CustomerUpdateOrder([FromBody] CustomerOrderDetailsUpdate customerOrderDetailsUpdate) {
-            if (customerOrderDetailsUpdate.ProductIds.Length != customerOrderDetailsUpdate.ProductIds.Length) {
-                return BadRequest("Length of Product IDs does not match length of Product Quantities");
+            var productValidResult = await ValidateProducts(customerOrderDetailsUpdate.ProductIds, customerOrderDetailsUpdate.ProductQuantities);
+            if (!productValidResult.succeeded) {
+                return BadRequest(productValidResult.errorMsg);
             }
-            List<Product> products = new List<Product>();
-            foreach (var productEntry in customerOrderDetailsUpdate.ProductIds) {
-                Product? p = await dataContext.Products.FindAsync(productEntry);
-                if (p == null) {
-                    return BadRequest("Invalid Product ID");
-                }
-                products.Add(p);
+            var products = productValidResult.products!;
+            FindCustomerResult? customerResult = await TryFindCustomer(await userManager.GetUserAsync(User));
+            if (!customerResult.succeeded) {
+                return BadRequest(customerResult.errorMsg);
             }
-            FindCustomerAction? customerAction = await TryFindCustomer();
-            if (customerAction.PossibleActionResult != null || customerAction.Customer == null) {
-                return customerAction.PossibleActionResult != null ? customerAction.PossibleActionResult : StatusCode(500, "Error with TryFindCustomer Function - no action result nor customer");
-            }
-            Customer customer = customerAction.Customer;
+            Customer customer = customerResult.customer!;
             Order? order = dataContext.Orders.Find(customerOrderDetailsUpdate.OrderId);
             if (order == null) {
                 return BadRequest("Invalid Order Id");
@@ -239,25 +228,17 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         [HttpPut("Admin/Update")]
         [Authorize(Policy = "RequireAdminRole")]
         public async Task<ActionResult<string>> AdminUpdateOrder([FromBody] AdminOrderDetailsUpdate adminOrderDetailsUpdate) {
-            if (adminOrderDetailsUpdate.ProductIds.Length != adminOrderDetailsUpdate.ProductIds.Length) {
-                return BadRequest("Length of Product IDs does not match length of Product Quantities");
+            var productValidResult = await ValidateProducts(adminOrderDetailsUpdate.ProductIds, adminOrderDetailsUpdate.ProductQuantities);
+            if (!productValidResult.succeeded) {
+                return BadRequest(productValidResult.errorMsg);
             }
-            List<Product> products = new List<Product>();
-            foreach (var productEntry in adminOrderDetailsUpdate.ProductIds) {
-                Product? p = await dataContext.Products.FindAsync(productEntry);
-                if (p == null) {
-                    return BadRequest("Invalid Product ID");
-                }
-                products.Add(p);
+            var products = productValidResult.products!;
+            FindCustomerResult? customerResult = await TryFindCustomer(
+                await userManager.FindByEmailAsync(adminOrderDetailsUpdate.CustomerEmail));
+            if (!customerResult.succeeded) {
+                return BadRequest(customerResult.errorMsg);
             }
-            User? user = await userManager.FindByEmailAsync(adminOrderDetailsUpdate.CustomerEmail);
-            if (user == null) {
-                return BadRequest("Invalid User");
-            }
-            Customer? customer = await dataContext.Customers.FindAsync(user.UserRoleId);
-            if (customer == null) {
-                return BadRequest("Invalid User");
-            }
+            Customer customer = customerResult.customer!;
             Order? order = dataContext.Orders.Find(adminOrderDetailsUpdate.OrderId);
             if (order == null) {
                 return BadRequest("Invalid Order Id");
@@ -279,11 +260,11 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         [HttpGet("Customer/Get/Active")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> GetActiveOrders() {
-            FindCustomerAction? customerAction = await TryFindCustomer();
-            if (customerAction.PossibleActionResult != null || customerAction.Customer == null) {
-                return customerAction.PossibleActionResult != null ? customerAction.PossibleActionResult : StatusCode(500, "Error with TryFindCustomer Function - no action result nor customer");
+            FindCustomerResult? customerResult = await TryFindCustomer(await userManager.GetUserAsync(User));
+            if (!customerResult.succeeded) {
+                return BadRequest(customerResult.errorMsg);
             }
-            Customer customer = customerAction.Customer;
+            Customer customer = customerResult.customer!;
             List<Order> orders = dataContext.Orders.Where(o => o.Customer.Id.Equals(customer.Id) && OrderStatuses.IsActive(OrderStatuses.ToEnum(o.Status))).ToList();
             return Ok($"[{String.Join(",", orders.Select(o => o.ToJSON()))}]");
         }
@@ -291,11 +272,11 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         [HttpGet("Customer/Get/All")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> GetAllOrders() {
-            FindCustomerAction? customerAction = await TryFindCustomer();
-            if (customerAction.PossibleActionResult != null || customerAction.Customer == null) {
-                return customerAction.PossibleActionResult != null ? customerAction.PossibleActionResult : StatusCode(500, "Error with TryFindCustomer Function - no action result nor customer");
+            FindCustomerResult? customerResult = await TryFindCustomer(await userManager.GetUserAsync(User));
+            if (!customerResult.succeeded) {
+                return BadRequest(customerResult.errorMsg);
             }
-            Customer customer = customerAction.Customer;
+            Customer customer = customerResult.customer!;
             List<Order> orders = dataContext.Orders.Where(o => o.Customer.Id.Equals(customer.Id)).ToList();
             return Ok($"[{String.Join(",", orders.Select(o => o.ToJSON()))}]");
         }
@@ -303,11 +284,11 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         [HttpGet("Customer/Get/{id}")]
         [Authorize(Policy = "RequireCustomerRole")]
         public async Task<ActionResult<string>> GetOrder(Guid id) {
-            FindCustomerAction? customerAction = await TryFindCustomer();
-            if (customerAction.PossibleActionResult != null || customerAction.Customer == null) {
-                return customerAction.PossibleActionResult != null ? customerAction.PossibleActionResult : StatusCode(500, "Error with TryFindCustomer Function - no action result nor customer");
+            FindCustomerResult? customerResult = await TryFindCustomer(await userManager.GetUserAsync(User));
+            if (!customerResult.succeeded) {
+                return BadRequest(customerResult.errorMsg);
             }
-            Customer customer = customerAction.Customer;
+            Customer customer = customerResult.customer!;
             List<Order> orders = dataContext.Orders.Where(o => o.Customer.Id.Equals(customer.Id) && o.Id.Equals(id)).ToList();
             return Ok($"[{String.Join(",", orders.Select(o => o.ToJSON()))}]");
         }
@@ -331,7 +312,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         public async Task<ActionResult<Product>> Get(Guid id) {
             Order? order = await dataContext.Orders.FindAsync(id);
             if (order == null) {
-                return BadRequest("Unknown Product ID");
+                return BadRequest("Invalid Order Id");
             }
             return Ok(order.ToJSON());
         }
