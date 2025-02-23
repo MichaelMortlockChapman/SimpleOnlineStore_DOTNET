@@ -1,4 +1,6 @@
 # SimpleOnlineStore .NET v0.2.0
+[![.NET](https://github.com/MichaelMortlockChapman/SimpleOnlineStore_DOTNET/actions/workflows/dotnet.yml/badge.svg)](https://github.com/MichaelMortlockChapman/SimpleOnlineStore_DOTNET/actions/workflows/dotnet.yml)
+
 This project was built to develop and showcase my skills with the ASP.NET Core framework. The web service created utilizes ASP.NET Core 8, .NET 8, and a PostgreSQL database, forming the RESTful API backend of a fictional online store. The service provides business logic for authentication, authorization, customer management, product catalogue, and order processing. Through this project, I deepened my understanding of ASP.NET’s architecture, including dependency injection, entity frameworks, and middleware pipeline configuration.
 
 The applications uses the default 'Cookie Identity' schema for authentication. A simple two state role policy is used for authorization, the two roles being `Admin` and `Customer`.

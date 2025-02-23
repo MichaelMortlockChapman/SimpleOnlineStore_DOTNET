@@ -80,13 +80,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 using (var scope = app.Services.CreateScope()) {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-    foreach (string role in Roles.ROLES) {
-        if (!await roleManager.RoleExistsAsync(role)) {
-            await roleManager.CreateAsync(new IdentityRole(role));
-        }
-    }
+    await Program.TryAddRoles(scope);
 }
 
 // create admin (super) user for solution
@@ -124,6 +118,18 @@ public partial class Program {
             } else {
                 semaphoreSlim.Release();
                 throw new Exception("Error creating SuperUser");
+            }
+        }
+        semaphoreSlim.Release();
+    }
+
+    public static async Task TryAddRoles(IServiceScope scope) {
+        await semaphoreSlim.WaitAsync();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+        foreach (string role in Roles.ROLES) {
+            if (!await roleManager.RoleExistsAsync(role)) {
+                await roleManager.CreateAsync(new IdentityRole(role));
             }
         }
         semaphoreSlim.Release();
