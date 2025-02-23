@@ -5,15 +5,29 @@ name: .NET
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev ]
 
 jobs:
-  build:
-
+  CL:
     runs-on: ubuntu-latest
-
+    
+    services:
+      postgre:
+        image: postgres
+        env:
+          POSTGRES_DB: SOS_DOTNET_TEST_DB
+          POSTGRES_USER: SOS_DOTNET_ADMIN
+          POSTGRES_PASSWORD: admin
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET
@@ -24,7 +38,19 @@ jobs:
       run: dotnet restore
     - name: Build
       run: dotnet build --no-restore
+    - name: Update database
+      run: |
+        dotnet tool install --global dotnet-ef
+        dotnet tool restore
+        dotnet ef migrations add Init --project "./src/SimpleOnlineStore_Dotnet"
+        dotnet ef database update --project "./src/SimpleOnlineStore_Dotnet" --connection "Server=localhost;Port=5432;Database=SOS_DOTNET_TEST_DB;Username=SOS_DOTNET_ADMIN;Password=admin;IncludeErrorDetail=true"
+      env:
+        POSTGRES_HOST: postgres
+        POSTGRES_PORT: 5432
     - name: Test
-      run: dotnet test --no-build --verbosity normal --collect:"XPlat Code Coverage"
-    - name: Codecov
-      uses: codecov/codecov-action@v1.5.2
+      run: dotnet test --no-build --verbosity m
+      env:
+        POSTGRES_HOST: postgres
+        POSTGRES_PORT: 5432
+    # - name: Codecov
+    #   uses: codecov/codecov-action@v1.5.2
