@@ -55,4 +55,5 @@ All leaf nodes are valid route resolutions. For example The '/Hello' leaf indica
 - Unit Testing
 
 ## Future Enhancements
-I plan to further improve integration testing, particularly in handling middleware and authentication. I encountered challenges when implementing mocks for these components, as the flexibility of ASP.NET Core’s architecture makes it difficult to find documentation that applies directly to every scenario. Moving forward, I aim to refine my approach and explore better testing strategies to enhance test coverage and reliability.
+-  Further integration testing: Authentication and authorization are implemented, but integration testing for 'business logic' controllers is for the most part still missing.
+- Improve secret management: Currently, all secrets are stored directly within project files, which is a poor security practice. Instead, environment variables should be used to keep sensitive information out of source code.
