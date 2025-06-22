@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleOnlineStore_Dotnet", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleOnloneStore_Dotnet.Api.Tests", "tests\SimpleOnloneStore_Dotnet.Api.Tests\SimpleOnloneStore_Dotnet.Api.Tests.csproj", "{DE937BB8-4F59-46AD-B4C5-793F5B1B4A9D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleOnlineStore_DOTNET_BlazorWASM", "SimpleOnlineStore_DOTNET_BlazorWASM\SimpleOnlineStore_DOTNET_BlazorWASM.csproj", "{B8DA7BF9-AD96-4C91-9065-5A58FDF1A80D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{DE937BB8-4F59-46AD-B4C5-793F5B1B4A9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE937BB8-4F59-46AD-B4C5-793F5B1B4A9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE937BB8-4F59-46AD-B4C5-793F5B1B4A9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8DA7BF9-AD96-4C91-9065-5A58FDF1A80D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8DA7BF9-AD96-4C91-9065-5A58FDF1A80D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8DA7BF9-AD96-4C91-9065-5A58FDF1A80D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8DA7BF9-AD96-4C91-9065-5A58FDF1A80D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
