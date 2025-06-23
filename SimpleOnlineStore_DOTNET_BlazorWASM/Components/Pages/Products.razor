@@ -8,6 +8,8 @@
 <AuthorizeView Roles="ADMIN">
     <Authorized>
         <CreateProductComponent />
+        <Modal @ref="updateModel" />
+        <Modal @ref="deleteModel" />
         <hr />
     </Authorized>
 </AuthorizeView>
@@ -25,6 +27,7 @@
                 <AuthorizeView Roles="ADMIN">
                     <Authorized>
                         <th></th>
+                        <th></th>
                     </Authorized>
                 </AuthorizeView>
 
@@ -39,7 +42,10 @@
                     <td>@product.Stock</td>
                     <AuthorizeView Roles="ADMIN">
                         <Authorized>
-                            <td>CHANGE</td>
+                            <td>
+                                <Button Color="ButtonColor.Primary" @onclick="(() => ShowUpdateProductComponent(product.Id, product.Name, product.Description, product.Price, product.Stock))">Change</Button>
+                                <Button Color="ButtonColor.Danger" @onclick="(() => ShowDeleteProductComponent(product.Id, product.Name))">Delete</Button>
+                            </td>
                         </Authorized>
                     </AuthorizeView>
                 </tr>
@@ -51,14 +57,41 @@
 @code {
     private List<Product>? products;
 
-    protected override async Task OnInitializedAsync() =>
+    protected override async Task OnInitializedAsync() {
         products = await Http.GetFromJsonAsync<List<Product>>("/Product/GetNext");
+    }
 
     public class Product {
-        public int Id { get; private set; }
+        public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public double Price { get; set; }
         public int Stock { get; set; }
+    }
+
+    private Modal updateModel = default!;
+    private Modal deleteModel = default!;
+
+    private async Task OnHideUpdateModalClick() {
+        await updateModel.HideAsync();
+    }
+
+    private async Task ShowUpdateProductComponent(int ProductId, string Name, string Description, double Price, int Stock) {
+        var parameters = new Dictionary<string, object>();
+        parameters.Add("ProductId", ProductId);
+        parameters.Add("Name", Name);
+        parameters.Add("Description", Description);
+        parameters.Add("Price", Price);
+        parameters.Add("Stock", Stock);
+        parameters.Add("OnclickCallback", EventCallback.Factory.Create<MouseEventArgs>(this, OnHideUpdateModalClick));
+        await updateModel.ShowAsync<UpdateProductComponent>(title: "Update Product", parameters: parameters);
+    }
+
+    private async Task ShowDeleteProductComponent(int ProductId, string Name) {
+        var parameters = new Dictionary<string, object>();
+        parameters.Add("ProductId", ProductId);
+        parameters.Add("Name", Name);
+        parameters.Add("OnclickCallback", EventCallback.Factory.Create<MouseEventArgs>(this, OnHideUpdateModalClick));
+        await updateModel.ShowAsync<DeleteProductComponent>(title: "Delete Product", parameters: parameters);
     }
 }

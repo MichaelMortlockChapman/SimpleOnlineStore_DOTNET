@@ -1,0 +1,77 @@
+﻿@using System.ComponentModel.DataAnnotations
+@inject IHttpClientFactory HttpClientFactory
+
+<div class="mb-3">
+    Product ID: <span>@ProductId</span>
+</div>
+Name:
+<div class="mb-3">
+    <TextInput @bind-Value=@Name
+               id="Name"
+               aria-required="true" />
+</div>
+Description:
+<div class="mb-3">
+    <TextAreaInput @bind-Value=@Description
+                   id="Description"
+                   aria-required="true" />
+</div>
+Price:
+<div class="mb-3">
+    <CurrencyInput TValue="double"
+                   @bind-Value=@Price
+                   id="Price"
+                   aria-required="true" />
+</div>
+ Stock:
+<div class="mb-3">
+    <NumberInput @bind-Value=@Stock
+                 id="Stock"
+                 aria-required="true" />
+</div>
+<Button Color="ButtonColor.Secondary" @onclick="OnClickCallback">Close</Button>
+<Button Color="ButtonColor.Danger" @onclick="UpdateProductAsync">Update</Button>
+
+@code {
+    private HttpClient _httpClient;
+
+    protected override async Task OnInitializedAsync() {
+        _httpClient = HttpClientFactory.CreateClient("Auth");
+    }
+
+    [Parameter] public int ProductId { get; set; }
+    [Parameter] public string Name { get; set; } = string.Empty;
+    [Parameter] public string Description { get; set; } = string.Empty;
+    [Parameter] public double Price { get; set; } = 0;
+    [Parameter] public int Stock { get; set; } = 0;
+
+    [Parameter] public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+
+    private async Task OnHideModalClick() {
+        Name = string.Empty;
+        Description = string.Empty;
+        Price = 0;
+        Stock = 0;
+        await OnClickCallback.InvokeAsync();
+    }
+
+    public async Task UpdateProductAsync() {
+        var result = await _httpClient.PutAsJsonAsync(
+                    "api/v1/Product/Update", new ProductDetails {
+                            Id = ProductId,
+                            Name = Name,
+                            Description = Description,
+                            Price = Price,
+                            Stock = Stock
+                    });
+        await OnHideModalClick();
+    }
+
+    public record class ProductDetails {
+        public int Id { get; set; }
+        public required string Name { get; set; }
+        public required string Description { get; set; }
+        public double Price { get; set; }
+        public int Stock { get; set; }
+    }
+}
