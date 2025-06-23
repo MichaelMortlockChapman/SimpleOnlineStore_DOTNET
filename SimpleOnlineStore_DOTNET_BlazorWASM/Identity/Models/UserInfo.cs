@@ -11,11 +11,11 @@
         /// <summary>
         /// A value indicating whether the email has been confirmed yet.
         /// </summary>
-        public bool IsEmailConfirmed { get; set; }
+        public bool EmailConfirmed { get; set; }
 
         /// <summary>
         /// The list of claims for the user.
         /// </summary>
-        public Dictionary<string, string> Claims { get; set; } = [];
+        public List<string> Claims { get; set; } = [];
     }
 }

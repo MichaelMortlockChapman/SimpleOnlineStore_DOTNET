@@ -15,7 +15,7 @@ namespace SimpleOnlineStore_DOTNET_BlazorWASM.Identity {
     /// </remarks>
     /// <param name="httpClientFactory">Factory to retrieve auth client.</param>
     public class CookieAuthenticationStateProvider(IHttpClientFactory httpClientFactory, ILogger<CookieAuthenticationStateProvider> logger)
-        : AuthenticationStateProvider, IAccountManagement {
+        : AuthenticationStateProvider, ICustomAccountManagement {
         /// <summary>
         /// Map the JavaScript-formatted properties to C#-formatted classes.
         /// </summary>
@@ -27,7 +27,7 @@ namespace SimpleOnlineStore_DOTNET_BlazorWASM.Identity {
         /// <summary>
         /// Special auth client.
         /// </summary>
-        private readonly HttpClient httpClient = httpClientFactory.CreateClient("Auth");
+        private readonly HttpClient httpClient = httpClientFactory.CreateClient("Auth"); 
 
         /// <summary>
         /// Authentication state.
@@ -39,22 +39,22 @@ namespace SimpleOnlineStore_DOTNET_BlazorWASM.Identity {
         /// </summary>
         private readonly ClaimsPrincipal unauthenticated = new(new ClaimsIdentity());
 
-        /// <summary>
-        /// Register a new user.
-        /// </summary>
-        /// <param name="email">The user's email address.</param>
-        /// <param name="password">The user's password.</param>
-        /// <returns>The result serialized to a <see cref="FormResult"/>.
-        /// </returns>
-        public async Task<FormResult> RegisterAsync(string email, string password) {
+        public async Task<FormResult> RegisterAsync(string email, string password) { return new FormResult { }; }
+
+        public async Task<FormResult> RegisterAsync2(string email, string password, string name, string address, string city, string postalCode, string country) {
             string[] defaultDetail = ["An unknown error prevented registration from succeeding."];
 
             try {
                 // make the request
                 var result = await httpClient.PostAsJsonAsync(
-                    "register", new {
+                    "api/v1/Auth/Register", new {
                         email,
-                        password
+                        password,
+                        name,
+                        address,
+                        city,
+                        postalCode,
+                        country
                     });
 
                 // successful?
@@ -105,7 +105,7 @@ namespace SimpleOnlineStore_DOTNET_BlazorWASM.Identity {
             try {
                 // login with cookies
                 var result = await httpClient.PostAsJsonAsync(
-                    "login?useCookies=true", new {
+                    "api/v1/Auth/Login", new {
                         email,
                         password
                     });
@@ -145,7 +145,7 @@ namespace SimpleOnlineStore_DOTNET_BlazorWASM.Identity {
 
             try {
                 // the user info endpoint is secured, so if the user isn't logged in this will fail
-                using var userResponse = await httpClient.GetAsync("manage/info");
+                using var userResponse = await httpClient.GetAsync("/api/v1/Auth/Info");
 
                 // throw if user info wasn't retrieved
                 userResponse.EnsureSuccessStatusCode();
@@ -164,29 +164,8 @@ namespace SimpleOnlineStore_DOTNET_BlazorWASM.Identity {
 
                     // add any additional claims
                     claims.AddRange(
-                        userInfo.Claims.Where(c => c.Key != ClaimTypes.Name && c.Key != ClaimTypes.Email)
-                            .Select(c => new Claim(c.Key, c.Value)));
-
-                    // request the roles endpoint for the user's roles
-                    using var rolesResponse = await httpClient.GetAsync("roles");
-
-                    // throw if request fails
-                    rolesResponse.EnsureSuccessStatusCode();
-
-                    // read the response into a string
-                    var rolesJson = await rolesResponse.Content.ReadAsStringAsync();
-
-                    // deserialize the roles string into an array
-                    var roles = JsonSerializer.Deserialize<RoleClaim[]>(rolesJson, jsonSerializerOptions);
-
-                    // add any roles to the claims collection
-                    if (roles?.Length > 0) {
-                        foreach (var role in roles) {
-                            if (!string.IsNullOrEmpty(role.Type) && !string.IsNullOrEmpty(role.Value)) {
-                                claims.Add(new Claim(role.Type, role.Value, role.ValueType, role.Issuer, role.OriginalIssuer));
-                            }
-                        }
-                    }
+                        userInfo.Claims.Select(c => new Claim(ClaimTypes.Role, c))
+                    );
 
                     // set the principal
                     var id = new ClaimsIdentity(claims, nameof(CookieAuthenticationStateProvider));
@@ -208,7 +187,7 @@ namespace SimpleOnlineStore_DOTNET_BlazorWASM.Identity {
         public async Task LogoutAsync() {
             const string Empty = "{}";
             var emptyContent = new StringContent(Empty, Encoding.UTF8, "application/json");
-            await httpClient.PostAsync("logout", emptyContent);
+            await httpClient.PostAsync("/api/v1/Auth/Logout", emptyContent);
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SimpleOnlineStore_Dotnet.Data;
 using SimpleOnlineStore_Dotnet.Models;
@@ -47,7 +48,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
                 await dataContext.SaveChangesAsync();
                 user.EmailConfirmed = true;
                 await userManager.AddToRoleAsync(user, Roles.CUSTOMER_ROLE);
-                await signInManager.SignInAsync(user, isPersistent: false);
+                await signInManager.SignInAsync(user, isPersistent: true);
                 logger.LogInformation("User registered");
                 return Ok("");
             } else {
@@ -69,12 +70,36 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
             }
             var result = await signInManager.CheckPasswordSignInAsync(user, details.Password, lockoutOnFailure: false);
             if (result.Succeeded) {
-                await signInManager.SignInAsync(user, isPersistent: false);
+                await signInManager.SignInAsync(user, isPersistent: true);
                 logger.LogInformation("User Logged In");
                 return Ok();
             } else {
                 return Unauthorized();
             }
+        }
+
+        [HttpPost("[action]")]
+        [Authorize]
+        public async Task<ActionResult<string>> Logout() {
+            await signInManager.SignOutAsync();
+            return Ok();
+        }
+
+        [HttpGet("[action]")]
+        [Authorize]
+        public async Task<ActionResult<string>> Info() {
+            User? user = await userManager.GetUserAsync(User);
+            if (user == null) {
+                return BadRequest("Invalid User");
+            }
+            string emailConfirmed = user.EmailConfirmed ? "true" : "false";
+            var roles = await userManager.GetRolesAsync(user);
+            string userInfoResult = "{" +
+                    $"\"email\":\"{user.Email}\"," +
+                    $"\"emailConfirmed\":{emailConfirmed}," +
+                    $"\"claims\":[{string.Join(",", roles.Select((role) => $"\"{role}\"").ToList())}]" +
+                "}";
+            return Ok(userInfoResult);
         }
     }
 }

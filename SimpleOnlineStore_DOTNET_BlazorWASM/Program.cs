@@ -22,16 +22,18 @@ builder.Services.AddScoped<AuthenticationStateProvider, CookieAuthenticationStat
 
 // register the account management interface
 builder.Services.AddScoped(
-    sp => (IAccountManagement)sp.GetRequiredService<AuthenticationStateProvider>());
+    sp => (ICustomAccountManagement)sp.GetRequiredService<AuthenticationStateProvider>());
 
 // set base address for default host
 builder.Services.AddScoped(sp =>
-    new HttpClient { BaseAddress = new Uri(builder.Configuration["FrontendUrl"] ?? "https://localhost:5002") });
+    new HttpClient { BaseAddress = new Uri(builder.Configuration["BackendUrl"] ?? "https://localhost:5001") });
 
 // configure client for auth interactions
 builder.Services.AddHttpClient(
     "Auth",
-    opt => opt.BaseAddress = new Uri(builder.Configuration["BackendUrl"] ?? "https://localhost:5001"))
+    opt => {
+        opt.BaseAddress = new Uri(builder.Configuration["BackendUrl"] ?? "https://localhost:5001");
+    })
     .AddHttpMessageHandler<CookieHandler>();
 
 await builder.Build().RunAsync();

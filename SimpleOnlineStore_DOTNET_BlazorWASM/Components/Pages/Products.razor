@@ -1,0 +1,64 @@
+﻿@page "/products"
+@inject HttpClient Http
+
+<PageTitle>Products</PageTitle>
+
+<h1>Products</h1>
+
+<AuthorizeView Roles="ADMIN">
+    <Authorized>
+        <CreateProductComponent />
+        <hr />
+    </Authorized>
+</AuthorizeView>
+
+@if (products == null) {
+    <p><em>Loading...</em></p>
+} else {
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Price (AUD$)</th>
+                <th>Stock</th>
+                <AuthorizeView Roles="ADMIN">
+                    <Authorized>
+                        <th></th>
+                    </Authorized>
+                </AuthorizeView>
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products) {
+                <tr>
+                    <td>@product.Name</td>
+                    <td>@product.Description</td>
+                    <td>@product.Price</td>
+                    <td>@product.Stock</td>
+                    <AuthorizeView Roles="ADMIN">
+                        <Authorized>
+                            <td>CHANGE</td>
+                        </Authorized>
+                    </AuthorizeView>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Product>? products;
+
+    protected override async Task OnInitializedAsync() =>
+        products = await Http.GetFromJsonAsync<List<Product>>("/Product/GetNext");
+
+    public class Product {
+        public int Id { get; private set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public double Price { get; set; }
+        public int Stock { get; set; }
+    }
+}

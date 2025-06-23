@@ -23,6 +23,17 @@ services.AddSwaggerGen(options => {
 services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+services.AddCors(
+    options => options.AddPolicy(
+        "wasm",
+        policy => policy.WithOrigins([
+            builder.Configuration["BackendUrl"] ?? "https://localhost:5001",
+            builder.Configuration["FrontendUrl"] ?? "https://localhost:5002"
+        ])
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()));
+
 services
     .AddLogging(config => {
         config.AddConsole();
@@ -33,35 +44,45 @@ services
     })
     .AddEntityFrameworkStores<DataContext>();
 
+services
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options => {
+        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.Path = "/";
+    });
 services.AddAuthorization(options => {
     options.AddPolicy("RequireAdminRole", policy => policy.RequireRole(Roles.ADMIN_ROLE));
     options.AddPolicy("RequireCustomerRole", policy => policy.RequireRole(Roles.CUSTOMER_ROLE));
 });
-services
-    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options => {
-        options.Cookie.IsEssential = true;
-        options.Cookie.HttpOnly = false;
-    });
 
 services.ConfigureApplicationCookie(options => {
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.HttpOnly = true;
+    options.Cookie.Path = "/";
+
     options.Events.OnRedirectToAccessDenied = context => {
         context.Response.StatusCode = 403;
         return Task.CompletedTask;
     };
-    options.Events.OnRedirectToLogin = context => {
+    options.Events.OnRedirectToLogin = context => { 
         context.Response.StatusCode = 401;
         return Task.CompletedTask;
     };
 });
 
 services.Configure<CookiePolicyOptions>(options => {
-    options.MinimumSameSitePolicy = SameSiteMode.Lax;
+    options.Secure = CookieSecurePolicy.Always;
+    options.MinimumSameSitePolicy = SameSiteMode.None;
+    options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
 });
 
 var app = builder.Build();
 
 app.UseMiddleware<GlobalRoutePrefixMiddleware>("/api/v1");
+
+app.UseCors("wasm");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment()) {
