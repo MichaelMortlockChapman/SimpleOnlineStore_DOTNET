@@ -46,12 +46,14 @@ Price:
     [Parameter] public int Stock { get; set; } = 0;
 
     [Parameter] public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnClickSubmitCallback { get; set; }
 
     private async Task OnHideModalClick() {
         Name = string.Empty;
         Description = string.Empty;
         Price = 0;
         Stock = 0;
+        await OnClickSubmitCallback.InvokeAsync();
         await OnClickCallback.InvokeAsync();
     }
 

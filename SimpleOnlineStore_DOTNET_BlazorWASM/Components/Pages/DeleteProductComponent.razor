@@ -19,11 +19,13 @@
 
     [Parameter] public int ProductId { get; set; }
     [Parameter] public string Name { get; set; } = string.Empty;
+    [Parameter] public EventCallback<MouseEventArgs> OnClickSubmitCallback { get; set; }
 
     [Parameter] public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
 
     private async Task OnHideModalClick() {
         Name = string.Empty;
+        await OnClickSubmitCallback.InvokeAsync();
         await OnClickCallback.InvokeAsync();
     }
 

@@ -45,11 +45,14 @@
 
     private Modal modal = default!;
 
+    [Parameter] public EventCallback<MouseEventArgs> OnClickSubmitCallback { get; set; }
+
     private async Task OnShowModalClick() {
         await modal.ShowAsync();
     }
 
     private async Task OnHideModalClick() {
+        await OnClickSubmitCallback.InvokeAsync();
         await modal.HideAsync();
         Input.Name = string.Empty;
         Input.Description = string.Empty;

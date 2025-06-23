@@ -7,7 +7,7 @@
 
 <AuthorizeView Roles="ADMIN">
     <Authorized>
-        <CreateProductComponent />
+        <CreateProductComponent OnClickSubmitCallback=@RefreshProductsEventCallback />
         <Modal @ref="updateModel" />
         <Modal @ref="deleteModel" />
         <hr />
@@ -56,9 +56,15 @@
 
 @code {
     private List<Product>? products;
+    private EventCallback<MouseEventArgs> RefreshProductsEventCallback;
 
     protected override async Task OnInitializedAsync() {
         products = await Http.GetFromJsonAsync<List<Product>>("/Product/GetNext");
+        RefreshProductsEventCallback = EventCallback.Factory.Create<MouseEventArgs>(this, RefreshProducts);
+    }
+
+    private async Task RefreshProducts() {
+        products = await Http.GetFromJsonAsync<List<Product>>("/Product/GetNext");        
     }
 
     public class Product {
@@ -84,6 +90,7 @@
         parameters.Add("Price", Price);
         parameters.Add("Stock", Stock);
         parameters.Add("OnclickCallback", EventCallback.Factory.Create<MouseEventArgs>(this, OnHideUpdateModalClick));
+        parameters.Add("OnClickSubmitCallback", EventCallback.Factory.Create<MouseEventArgs>(this, RefreshProducts));
         await updateModel.ShowAsync<UpdateProductComponent>(title: "Update Product", parameters: parameters);
     }
 
@@ -92,6 +99,7 @@
         parameters.Add("ProductId", ProductId);
         parameters.Add("Name", Name);
         parameters.Add("OnclickCallback", EventCallback.Factory.Create<MouseEventArgs>(this, OnHideUpdateModalClick));
+        parameters.Add("OnClickSubmitCallback", EventCallback.Factory.Create<MouseEventArgs>(this, RefreshProducts));
         await updateModel.ShowAsync<DeleteProductComponent>(title: "Delete Product", parameters: parameters);
     }
 }
