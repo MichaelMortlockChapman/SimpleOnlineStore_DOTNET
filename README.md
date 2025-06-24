@@ -17,6 +17,8 @@ All leaf nodes are valid route resolutions. For example The '/Hello' leaf indica
   |-- /Auth
   |   |-- /Register
   |   |-- /Login
+  |   |-- /Logout
+  |   `-- /Info
   |-- /Customer
   |   |-- /GetDetails
   |   `-- /Update
