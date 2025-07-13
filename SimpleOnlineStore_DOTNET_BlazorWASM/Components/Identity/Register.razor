@@ -1,0 +1,190 @@
+@page "/register"
+@using System.ComponentModel.DataAnnotations
+@using SimpleOnlineStore_DOTNET_BlazorWASM.Identity
+@using SimpleOnlineStore_DOTNET_BlazorWASM.Identity.Models
+@inject ICustomAccountManagement Acct
+
+<PageTitle>Register</PageTitle>
+
+<h1>Register</h1>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="alert alert-success">You're already logged in as @context.User.Identity?.Name.</div>
+    </Authorized>
+    <NotAuthorized>
+        @if (formResult.Succeeded)
+        {
+            <div class="alert alert-success">
+                You successfully registered. Now you can <a href="login">login</a>.
+            </div>
+        }
+        else
+        {
+            @foreach (var error in formResult.ErrorList)
+            {
+                <div class="alert alert-danger">@error</div>
+            }
+            <div class="row">
+                <div class="col">
+                    <section>
+                        <EditForm Model="Input" method="post" OnValidSubmit="RegisterUserAsync"
+                                  FormName="register" Context="editform_context">
+                            <DataAnnotationsValidator />
+                            <h2>Register as a new user.</h2>
+                            <hr />
+                            Email:
+                            <div class="mb-3">
+                                <TextInput @bind-Value=@Input.Email
+                                           id="Input.Email"
+                                           aria-required="true" />
+                            </div>
+                            Password:
+                            <div class="form-floating mb-3">
+                                <PasswordInput @bind-Value=@Input.Password
+                                               id="Input.Password"
+                                               autocomplete="new-password"
+                                               aria-required="true" />
+                            </div>
+                            Confirm Password:
+                            <div class="form-floating mb-3">
+
+                                <PasswordInput @bind-Value=@Input.ConfirmPassword
+                                               id="Input.ConfirmPassword"
+                                               autocomplete="new-password"
+                                               aria-required="true" />
+                            </div>
+                            <hr />
+                            <div class="form-floating mb-3">
+                                <InputText @bind-Value="Input.Name"
+                                           id="Input.Name"
+                                           class="form-control"
+                                           autocomplete="fullname"
+                                           aria-required="true"
+                                           placeholder="John Smith" />
+                                <label for="Input.Name" class="form-label">
+                                    Full Name
+                                </label>
+                                <ValidationMessage For="() => Input.Name"
+                                                   class="text-danger" />
+                            </div>
+                            <div class="form-floating mb-3">
+                                <InputText @bind-Value="Input.Address"
+                                           id="Input.Address"
+                                           class="form-control"
+                                           autocomplete="address"
+                                           aria-required="true"
+                                           placeholder="1 Capital Circle" />
+                                <label for="Input.Address" class="form-label">
+                                    Address
+                                </label>
+                                <ValidationMessage For="() => Input.Address"
+                                                   class="text-danger" />
+                            </div>
+                            <div class="form-floating mb-3">
+                                <InputText @bind-Value="Input.City"
+                                           id="Input.City"
+                                           class="form-control"
+                                           autocomplete="address"
+                                           aria-required="true"
+                                           placeholder="Canberra" />
+                                <label for="Input.City" class="form-label">
+                                    City
+                                </label>
+                                <ValidationMessage For="() => Input.City"
+                                                   class="text-danger" />
+                            </div>
+                            <div class="form-floating mb-3">
+                                <InputText @bind-Value="Input.PostalCode"
+                                           id="Input.PostalCode"
+                                           class="form-control"
+                                           autocomplete="postalCode"
+                                           aria-required="true"
+                                           placeholder="2600" />
+                                <label for="Input.PostalCode" class="form-label">
+                                    Postal Code
+                                </label>
+                                <ValidationMessage For="() => Input.PostalCode"
+                                                   class="text-danger" />
+                            </div>
+                            <div class="form-floating mb-3">
+                                <InputText @bind-Value="Input.Country"
+                                           id="Input.Country"
+                                           class="form-control"
+                                           autocomplete="Country"
+                                           aria-required="true"
+                                           placeholder="2600" />
+                                <label for="Input.Country" class="form-label">
+                                    Country
+                                </label>
+                                <ValidationMessage For="() => Input.Country"
+                                                   class="text-danger" />
+                            </div>
+                            <div>
+                                <button type="submit" class="w-100 btn btn-lg btn-primary">
+                                    Register
+                                </button>
+                            </div>
+                        </EditForm>
+                    </section>
+                </div>
+            </div>
+        }
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private FormResult formResult = new();
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    public async Task RegisterUserAsync()
+    {
+        formResult = await Acct.RegisterAsync2(Input.Email, Input.Password, Input.Name, Input.Address, Input.City, Input.PostalCode, Input.Country);
+    }
+
+    private sealed class InputModel
+    {
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Email")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Compare("Password")]
+        [Display(Name = "Confirm Password")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "Full Name")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "Address")]
+        public string Address { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "City")]
+        public string City { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.PostalCode)]
+        [Display(Name = "Postal Code")]
+        public string PostalCode { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Text)]
+        [Display(Name = "Country")]
+        public string Country { get; set; } = string.Empty;
+    }
+}

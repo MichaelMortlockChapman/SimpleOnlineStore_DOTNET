@@ -81,12 +81,13 @@ namespace SimpleOnloneStore_Dotnet.Api.Tests {
             var controller = objects.controller;
             var products = new Mock<DbSet<Product>>();
             objects.dataContextMock.Object.Products = products.Object;
-            var details = new ProductDetails() {
+            var details = new FullProductDetails() {
+                Id = 1,
                 Name = "B",
                 Description = "B"
             };
 
-            var tmp = await controller.Update(1, details);
+            var tmp = await controller.Update(details);
             var result = tmp.Result as BadRequestObjectResult;
 
             Assert.NotNull(result);
@@ -102,12 +103,13 @@ namespace SimpleOnloneStore_Dotnet.Api.Tests {
             objects.dataContextMock.Object.Products = products.Object;
             products.Setup(_ => _.FindAsync(It.IsAny<int>())).Returns(ValueTask.FromResult(new Product(
                 "A", "A", (double)1, 1)));
-            var details = new ProductDetails() {
+            var details = new FullProductDetails() {
+                Id = 1,
                 Name = "B",
                 Description = "B"
             };
 
-            var tmp = await controller.Update(1, details);
+            var tmp = await controller.Update(details);
             var result = tmp.Result as OkResult;
 
             Assert.NotNull(result);

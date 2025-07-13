@@ -60,7 +60,7 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         }
 
         [HttpDelete("[action]")]
-        public async Task<ActionResult<string>> Delete(int id) {
+        public async Task<ActionResult<string>> Delete([FromQuery] int id) {
             Product? product = await _dataContext.Products.FindAsync(id);
 
             if (product == null) {
@@ -72,8 +72,8 @@ namespace SimpleOnlineStore_Dotnet.Controllers {
         }
 
         [HttpPut("[action]")]
-        public async Task<ActionResult<string>> Update(int id, ProductDetails productDetails) {
-            Product? product = await _dataContext.Products.FindAsync(id);
+        public async Task<ActionResult<string>> Update(FullProductDetails productDetails) {
+            Product? product = await _dataContext.Products.FindAsync(productDetails.Id);
             if (product == null) {
                 return BadRequest("Unknown Product ID");
             }

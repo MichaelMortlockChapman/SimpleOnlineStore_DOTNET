@@ -1,0 +1,93 @@
+﻿@using System.ComponentModel.DataAnnotations
+@inject IHttpClientFactory HttpClientFactory
+
+<Modal @ref="modal" Title="Create A New Product">
+    <BodyTemplate>
+        Name:
+        <div class="mb-3">
+            <TextInput @bind-Value=@Input.Name
+                        id="Input.Name"
+                        aria-required="true" />
+        </div>
+        Description:
+        <div class="mb-3">
+            <TextAreaInput @bind-Value=@Input.Description
+                        id="Input.Description"
+                        aria-required="true" />
+        </div>
+        Price:
+        <div class="mb-3">
+            <CurrencyInput TValue="double" 
+                        @bind-Value=@Input.Price
+                        id="Input.Price"
+                        aria-required="true" />
+        </div>
+        Stock:
+        <div class="mb-3">
+            <NumberInput @bind-Value=@Input.Stock
+                        id="Input.Stock"
+                        aria-required="true" />
+        </div>
+    </BodyTemplate>
+    <FooterTemplate>
+        <Button Color="ButtonColor.Secondary" @onclick="OnHideModalClick">Close</Button>
+        <Button Color="ButtonColor.Primary" @onclick="CreateProductAsync">Create</Button>
+    </FooterTemplate>
+</Modal>
+<Button Color="ButtonColor.Primary" @onclick="OnShowModalClick">Create Product</Button>
+
+@code {
+    private HttpClient _httpClient;
+
+    protected override async Task OnInitializedAsync() {
+        _httpClient = HttpClientFactory.CreateClient("Auth");
+    }
+
+    private Modal modal = default!;
+
+    [Parameter] public EventCallback<MouseEventArgs> OnClickSubmitCallback { get; set; }
+
+    private async Task OnShowModalClick() {
+        await modal.ShowAsync();
+    }
+
+    private async Task OnHideModalClick() {
+        await OnClickSubmitCallback.InvokeAsync();
+        await modal.HideAsync();
+        Input.Name = string.Empty;
+        Input.Description = string.Empty;
+        Input.Price = 0;
+        Input.Stock = 0;
+    }
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    public async Task CreateProductAsync() {
+        var result = await _httpClient.PostAsJsonAsync(
+                    "api/v1/Product/Create", new {
+                        Input.Name,
+                        Input.Description,
+                        Input.Price,
+                        Input.Stock
+                    });
+        await OnHideModalClick();
+    }
+
+    private sealed class InputModel {
+        [Required]
+        [DataType(DataType.Text)]
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Text)]
+        public string Description { get; set; } = string.Empty;
+
+        [Required]
+        [DataType(DataType.Currency)]
+        public double Price { get; set; } = 0;
+
+        [Required]
+        public double Stock { get; set; } = 0;
+    }
+}

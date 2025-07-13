@@ -1,0 +1,52 @@
+﻿@inherits LayoutComponentBase
+
+<div class="bb-page">
+
+    <Sidebar @ref="sidebar"
+             IconName="IconName.BootstrapFill"
+             Title="SOS .NET"
+             DataProvider="SidebarDataProvider" />
+
+    <main>
+        <div class="bb-top-row px-4 d-flex justify-content-end">
+            <div style="display:flex; flex-direction:row; gap: 15px">
+                <AuthorizeView>
+                    <Authorized>
+                        Logged in as @context.User.Identity?.Name. <a href="logout"><span class="bi bi-door-closed-fill" aria-hidden="true" style="vertical-align:middle"></span> Logout</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="login"><span class="bi bi-door-open" aria-hidden="true" style="vertical-align:middle"></span> Login</a>
+                        <a href="register"><span class="bi bi-pencil-square" aria-hidden="true" style="vertical-align:middle"></span> Register</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </div>
+
+        <article class="content px-4">
+            <div class="py-2">@Body</div>
+        </article>
+    </main>
+
+</div>
+
+@code {
+    Sidebar sidebar;
+    IEnumerable<NavItem> navItems;
+
+    private async Task<SidebarDataProviderResult> SidebarDataProvider(SidebarDataProviderRequest request) {
+        if (navItems is null)
+            navItems = GetNavItems();
+
+        return await Task.FromResult(request.ApplyTo(navItems));
+    }
+
+    private IEnumerable<NavItem> GetNavItems() {
+        navItems = new List<NavItem>
+            {
+            new NavItem { Id = "1", Href = "/", IconName = IconName.HouseDoorFill, Text = "Home", Match=NavLinkMatch.All},
+            new NavItem { Id = "4", Href = "/products", IconName = IconName.Shop, Text = "Products"},
+        };
+
+        return navItems;
+    }
+}
